@@ -161,7 +161,7 @@ class HDF5DatasetSliceHandler:
         self._file = h5py.File(self._filename, 'r')
 
     def close(self):
-        super(HDF5DatasetSliceHandler, self).close()
+        super().close()
         self._file.close()
         self._file = None
 
@@ -184,7 +184,7 @@ class AreaDetectorHDF5Handler(HDF5DatasetSliceHandler):
 
     def __init__(self, filename, frame_per_point=1):
         hardcoded_key = '/entry/data/data'
-        super(AreaDetectorHDF5Handler, self).__init__(
+        super().__init__(
             filename=filename, key=hardcoded_key,
             frame_per_point=frame_per_point)
 
@@ -215,7 +215,7 @@ class AreaDetectorHDF5SWMRHandler(AreaDetectorHDF5Handler):
     def __call__(self, point_number):
         if self._dataset is not None:
             self._dataset.id.refresh()
-        rtn = super(AreaDetectorHDF5SWMRHandler, self).__call__(
+        rtn = super().__call__(
             point_number)
 
         return rtn
@@ -263,7 +263,7 @@ class AreaDetectorHDF5TimestampHandler:
         self._file = h5py.File(self._filename, 'r')
 
     def close(self):
-        super(AreaDetectorHDF5TimestampHandler, self).close()
+        super().close()
         self._file.close()
         self._file = None
 
@@ -292,7 +292,7 @@ class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
     def __call__(self, point_number):
         if (self._dataset1 is not None) and (self._dataset2 is not None):
             self._dataset.id.refresh()
-        rtn = super(AreaDetectorHDF5SWMRTimestampHandler, self).__call__(
+        rtn = super().__call__(
             point_number)
         return rtn
 
@@ -360,7 +360,7 @@ class Xspress3HDF5Handler:
         self._file = h5py.File(self._filename, 'r')
 
     def close(self):
-        super(Xspress3HDF5Handler, self).close()
+        super().close()
         if self._file is not None:
             self._file.close()
             self._file = None
