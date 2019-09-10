@@ -1,6 +1,9 @@
 import logging
-import numpy as np
 import os.path
+
+import h5py
+import numpy as np
+import tifffile
 
 from .spe_reader import PrincetonSPEFile
 
@@ -24,6 +27,15 @@ class AreaDetectorSPEHandler:
         self._f_cache = dict()
 
     def __call__(self, point_number):
+        # Delay import because this is believed to be rarely used and should
+        # not be a required dependency.
+        try:
+            import pyspec
+        except ImportError as exc:
+            raise ImportError(
+                "The AreaDetectorSPEHandler handler requires pyspec to be "
+                "installed.") from exc
+        from pyspec.ccd.files import PrincetonSPEFile
         if point_number not in self._f_cache:
             fname = self._template % (self._path,
                                       self._filename,
@@ -62,7 +74,6 @@ class AreaDetectorTiffHandler:
             yield self._template % (self._path, self._filename, j)
 
     def __call__(self, point_number):
-        import tifffile
         ret = []
         for fn in self._fnames_for_point(point_number):
             with tifffile.TiffFile(fn) as tif:
@@ -113,7 +124,6 @@ class HDF5DatasetSliceHandler:
         return self._dataset[start:stop]
 
     def open(self):
-        import h5py
         if self._file:
             return
 
@@ -165,7 +175,6 @@ class AreaDetectorHDF5SWMRHandler(AreaDetectorHDF5Handler):
     specs = {'AD_HDF5_SWMR'} | HDF5DatasetSliceHandler.specs
 
     def open(self):
-        import h5py
         if self._file:
             return
 
@@ -216,7 +225,6 @@ class AreaDetectorHDF5TimestampHandler:
         return rtn
 
     def open(self):
-        import h5py
         if self._file:
             return
         self._file = h5py.File(self._filename, 'r')
@@ -243,7 +251,6 @@ class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
     specs = {'AD_HDF5_SWMR_TS'}
 
     def open(self):
-        import h5py
         if self._file:
             return
         self._file = h5py.File(self._filename, 'r', swmr=True)
@@ -268,7 +275,14 @@ class PilatusCBFHandler:
         self._initial_number = initial_number
 
     def __call__(self, point_number):
-        import fabio
+        # Delay import because this is believed to be rarely used and should
+        # not be a required dependency.
+        try:
+            import fabio
+        except ImportError as exc:
+            raise ImportError(
+                "The AreaDetectorSPEHandler handler requires fabio to be "
+                "installed.") from exc
         start, stop = (self._initial_number + point_number *
                        self._fpp, (point_number + 2) * self._fpp)
         ret = []
@@ -299,7 +313,6 @@ class Xspress3HDF5Handler:
     HANDLER_NAME = 'XSP3'
 
     def __init__(self, filename, key=XS3_XRF_DATA_KEY):
-        import h5py
         if isinstance(filename, h5py.File):
             self._file = filename
             self._filename = self._file.filename
@@ -312,7 +325,6 @@ class Xspress3HDF5Handler:
         self.open()
 
     def open(self):
-        import h5py
         if self._file:
             return
 
