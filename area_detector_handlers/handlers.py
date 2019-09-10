@@ -2,7 +2,6 @@ import logging
 import numpy as np
 import os.path
 
-from .handlers_base import HandlerBase
 from .spe_reader import PrincetonSPEFile
 from pims import FramesSequence, Frame
 
@@ -50,8 +49,8 @@ class IntegrityError(Exception):
     pass
 
 
-class AreaDetectorSPEHandler(HandlerBase):
-    specs = {'AD_SPE'} | HandlerBase.specs
+class AreaDetectorSPEHandler:
+    specs = {'AD_SPE'}
 
     def __init__(self, fpath, template, filename,
                  frame_per_point=1):
@@ -84,8 +83,8 @@ class AreaDetectorSPEHandler(HandlerBase):
                 for d in datum_kwarg_gen]
 
 
-class AreaDetectorTiffHandler(HandlerBase):
-    specs = {'AD_TIFF'} | HandlerBase.specs
+class AreaDetectorTiffHandler:
+    specs = {'AD_TIFF'}
 
     def __init__(self, fpath, template, filename, frame_per_point=1):
         self._path = os.path.join(fpath, '')
@@ -114,7 +113,7 @@ class AreaDetectorTiffHandler(HandlerBase):
         return ret
 
 
-class HDF5DatasetSliceHandler(HandlerBase):
+class HDF5DatasetSliceHandler:
     """
     Handler for data stored in one Dataset of an HDF5 file.
 
@@ -222,7 +221,7 @@ class AreaDetectorHDF5SWMRHandler(AreaDetectorHDF5Handler):
         return rtn
 
 
-class AreaDetectorHDF5TimestampHandler(HandlerBase):
+class AreaDetectorHDF5TimestampHandler:
     """ Handler to retrieve timestamps from Areadetector HDF5 File
 
     In this spec, the timestamps of the images are read.
@@ -234,7 +233,7 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
     frame_per_point : integer, optional
         number of frames to return as one datum, default 1
     """
-    specs = {'AD_HDF5_TS'} | HandlerBase.specs
+    specs = {'AD_HDF5_TS'}
 
     def __init__(self, filename, frame_per_point=1):
         self._fpp = frame_per_point
@@ -282,7 +281,7 @@ class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
     frame_per_point : integer, optional
         number of frames to return as one datum, default 1
     """
-    specs = {'AD_HDF5_SWMR_TS'} | HandlerBase.specs
+    specs = {'AD_HDF5_SWMR_TS'}
 
     def open(self):
         import h5py
@@ -336,8 +335,8 @@ class PilatusCBFHandler:
 XS3_XRF_DATA_KEY = 'entry/instrument/detector/data'
 
 
-class Xspress3HDF5Handler(HandlerBase):
-    specs = {'XSP3'} | HandlerBase.specs
+class Xspress3HDF5Handler:
+    specs = {'XSP3'}
     HANDLER_NAME = 'XSP3'
 
     def __init__(self, filename, key=XS3_XRF_DATA_KEY):
