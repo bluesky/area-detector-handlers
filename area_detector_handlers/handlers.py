@@ -103,6 +103,8 @@ class HDF5DatasetSliceHandler:
         Open the hdf5 file in SWMR read mode. Only used when mode = 'r'.
         Default is False.
     """
+    specs = set()
+
     def __init__(self, filename, key, frame_per_point=1):
         self._fpp = frame_per_point
         self._filename = filename
