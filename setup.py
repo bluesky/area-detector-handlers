@@ -37,7 +37,7 @@ setup(
     name='area-detector-handlers',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description="DataBroker "handlers" for Area Detector",
+    description="DataBroker 'handlers' for Area Detector",
     long_description=readme,
     author="Brookhaven National Lab",
     author_email='dallan@bnl.gov',
