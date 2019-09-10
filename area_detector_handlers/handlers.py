@@ -298,48 +298,8 @@ class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
         return rtn
 
 
-class _HdfMapsHandlerBase(HDF5DatasetSliceHandler):
-    """
-    Reader for XRF data stored in hdf5 files.
-
-    The data set is assumed to be in a group called MAPS and stored
-    as a 3D array ordered [energy, x, y].
-
-    Parameters
-    ----------
-    filename : str
-        Path to physical location of file
-    dset_path : str
-        The path to the dataset inside of 'MAPS'
-    """
-    def __init__(self, filename, dset_path):
-        self._filename = filename
-        self._dset_path = dset_path
-        self._file = None
-        self._dset = None
-        self._swmr = False
-        self.open()
-
-    def open(self):
-        """
-        Open the file for reading.
-
-        Provided as a stand alone function to allow re-opening of the handler
-        """
-        super(_HdfMapsHandlerBase, self).open()
-        self._dset = self._file['/'.join(['MAPS', self._dset_path])]
-
-    def __call__(self):
-
-        if not self._file:
-            raise RuntimeError("File is not open")
-
-        if self._swmr:
-            self._dataset.id.refresh()
-
-
-class PilatusCBFHandler(HandlerBase):
-    specs = {'AD_CBF'} | HandlerBase.specs
+class PilatusCBFHandler:
+    specs = {'AD_CBF'}
 
     def __init__(self, rpath, template, filename, frame_per_point=1,
                  initial_number=1):
