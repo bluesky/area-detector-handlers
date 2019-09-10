@@ -45,8 +45,15 @@ setup(
     python_requires='>={}'.format('.'.join(str(n) for n in min_version)),
     packages=find_packages(exclude=['docs', 'tests']),
     entry_points={
-        'console_scripts': [
-            # 'command = some.module:some_function',
+        'databroker.handlers': [
+            'AD_SPE = area_detector_handlers.handlers.AreaDetectorSPEHandler',
+            'AD_TIFF = area_detector_handlers.handlers.AreaDetectorTiffHandler',
+            'AD_HDF5 = area_detector_handlers.handlers.AreaDetectorHDF5Handler',
+            'AD_HDF5_SWMR = area_detector_handlers.handlers.AreaDetectorHDF5SWMRHandler',
+            'AD_HDF5_TS = area_detector_handlers.handlers.AreaDetectorHDF5TimestampHandler',
+            'AD_HDF5_SWMR_TS = area_detector_handlers.handlers.AreaDetectorHDF5SWMRTimestampHandler',
+            'XSP3 = area_detector_handlers.handlers.Xspress3HDF5Handler',
+            'AD_CBF = area_detector_handlers.handlers.PilatusCBFHandler',
         ],
     },
     include_package_data=True,
