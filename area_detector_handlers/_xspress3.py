@@ -5,11 +5,12 @@ XS3_XRF_DATA_KEY = "entry/instrument/detector/data"
 
 
 class BulkXSPRESS(HandlerBase):
-    specs = {"XPS3_FLY"}
+    specs = {"XSP3_FLY"}
     HANDLER_NAME = "XSP3_FLY"
     BASE_PATH = "entry/instrument/detector/"
 
     def __init__(self, resource_fn):
+        self._filename = resource_fn
         self._group = h5py.File(resource_fn, "r")[self.BASE_PATH]
 
     def __call__(self, target="data"):
@@ -18,7 +19,14 @@ class BulkXSPRESS(HandlerBase):
         return self._group[target][:]
 
     def close(self):
+        super().close()
         self._group.file.close()
+
+    def get_file_list(self, datum_kwarg_gen):
+        return (self._filename,)
+
+
+XS3_XRF_DATA_KEY = "entry/instrument/detector/data"
 
 
 class Xspress3HDF5Handler(HandlerBase):
