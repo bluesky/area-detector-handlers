@@ -1,4 +1,4 @@
-from area_detector_handlers.handlers import HandlerBase
+from area_detector_handlers import HandlerBase
 
 
 def test_context():
