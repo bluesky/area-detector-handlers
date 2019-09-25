@@ -1,7 +1,9 @@
-from .handlers import HandlerBase
+import logging
+from . import HandlerBase
 import h5py
+import numpy as np
 
-XS3_XRF_DATA_KEY = "entry/instrument/detector/data"
+logger = logging.getLogger(__name__)
 
 
 class BulkXSPRESS(HandlerBase):
@@ -52,15 +54,11 @@ class Xspress3HDF5Handler(HandlerBase):
         self._file = h5py.File(self._filename, "r")
 
     def close(self):
-        super(Xspress3HDF5Handler, self).close()
+        super().close()
         if self._file is not None:
             self._file.close()
             self._file = None
         self._dataset = None
-
-    @property
-    def dataset(self):
-        return self._dataset
 
     def _get_dataset(self):
         if self._dataset is not None:
@@ -84,23 +82,8 @@ class Xspress3HDF5Handler(HandlerBase):
         self._get_dataset()
         return self._dataset[frame, channel - 1, :].squeeze()
 
-    def get_roi(self, chan, bin_low, bin_high, frame=None, max_points=None):
-        self._get_dataset()
-
-        roi = np.sum(self._dataset[:, chan - 1, bin_low:bin_high], axis=1)
-        if max_points is not None:
-            roi = roi[:max_points]
-
-            if len(roi) < max_points:
-                roi = np.pad(roi, ((0, max_points - len(roi)),), "constant")
-
-        if frame is not None:
-            roi = roi[frame, :]
-
-        return roi
-
     def get_file_list(self, datum_kwarg_gen):
-        return [self._filename]
+        return (self._filename,)
 
     def __repr__(self):
         return "{0.__class__.__name__}(filename={0._filename!r})".format(self)
