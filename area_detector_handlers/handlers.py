@@ -1,6 +1,7 @@
 import logging
 import os.path
 
+
 import h5py
 import numpy as np
 import tifffile
@@ -11,12 +12,30 @@ from .spe_reader import PrincetonSPEFile
 logger = logging.getLogger(__name__)
 
 
+class HandlerBase:
+    """
+    Base-class for Handlers to provide the boiler plate to
+    make them usable in context managers by provding stubs of
+    ``__enter__``, ``__exit__`` and ``close``
+    """
+    specs = set()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        pass
+
+
 class IntegrityError(Exception):
     pass
 
 
-class AreaDetectorSPEHandler:
-    specs = {'AD_SPE'}
+class AreaDetectorSPEHandler(HandlerBase):
+    specs = {'AD_SPE'} | HandlerBase.specs
 
     def __init__(self, fpath, template, filename,
                  frame_per_point=1):
@@ -58,8 +77,8 @@ class AreaDetectorSPEHandler:
                 for d in datum_kwarg_gen]
 
 
-class AreaDetectorTiffHandler:
-    specs = {'AD_TIFF'}
+class AreaDetectorTiffHandler(HandlerBase):
+    specs = {'AD_TIFF'} | HandlerBase.specs
 
     def __init__(self, fpath, template, filename, frame_per_point=1):
         self._path = os.path.join(fpath, '')
@@ -87,7 +106,7 @@ class AreaDetectorTiffHandler:
         return ret
 
 
-class HDF5DatasetSliceHandler:
+class HDF5DatasetSliceHandler(HandlerBase):
     """
     Handler for data stored in one Dataset of an HDF5 file.
 
@@ -191,7 +210,7 @@ class AreaDetectorHDF5SWMRHandler(AreaDetectorHDF5Handler):
         return rtn
 
 
-class AreaDetectorHDF5TimestampHandler:
+class AreaDetectorHDF5TimestampHandler(HandlerBase):
     """ Handler to retrieve timestamps from Areadetector HDF5 File
 
     In this spec, the timestamps of the images are read.
@@ -203,7 +222,7 @@ class AreaDetectorHDF5TimestampHandler:
     frame_per_point : integer, optional
         number of frames to return as one datum, default 1
     """
-    specs = {'AD_HDF5_TS'}
+    specs = {'AD_HDF5_TS'} | HandlerBase.specs
 
     def __init__(self, filename, frame_per_point=1):
         self._fpp = frame_per_point
@@ -250,7 +269,7 @@ class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
     frame_per_point : integer, optional
         number of frames to return as one datum, default 1
     """
-    specs = {'AD_HDF5_SWMR_TS'}
+    specs = {'AD_HDF5_SWMR_TS'} | HandlerBase.specs
 
     def open(self):
         if self._file:
@@ -310,8 +329,8 @@ class PilatusCBFHandler:
 XS3_XRF_DATA_KEY = 'entry/instrument/detector/data'
 
 
-class Xspress3HDF5Handler:
-    specs = {'XSP3'}
+class Xspress3HDF5Handler(HandlerBase):
+    specs = {'XSP3'} | HandlerBase.specs
     HANDLER_NAME = 'XSP3'
 
     def __init__(self, filename, key=XS3_XRF_DATA_KEY):
