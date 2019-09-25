@@ -46,15 +46,6 @@ class AreaDetectorSPEHandler(HandlerBase):
         self._f_cache = dict()
 
     def __call__(self, point_number):
-        # Delay import because this is believed to be rarely used and should
-        # not be a required dependency.
-        try:
-            import pyspec
-        except ImportError as exc:
-            raise ImportError(
-                "The AreaDetectorSPEHandler handler requires pyspec to be "
-                "installed.") from exc
-        from pyspec.ccd.files import PrincetonSPEFile
         if point_number not in self._f_cache:
             fname = self._template % (self._path,
                                       self._filename,
