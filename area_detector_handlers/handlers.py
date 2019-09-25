@@ -9,7 +9,7 @@ import tifffile
 from . import HandlerBase
 from .spe_reader import PrincetonSPEFile
 
-from ._xspress3 import BulkXSPRESS, Xspress3HDF5Handler
+from ._xspress3 import BulkXSPRESS, Xspress3HDF5Handler  # noqa
 
 logger = logging.getLogger(__name__)
 
