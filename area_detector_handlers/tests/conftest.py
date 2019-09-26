@@ -5,13 +5,13 @@ import tifffile
 from itertools import count
 from tempfile import TemporaryDirectory
 from pathlib import Path
-import pkg_resources
+import entrypoints
 
 
 def select_handler(spec):
     handlers = [
         ep.load()
-        for ep in pkg_resources.iter_entry_points("databroker.handlers")
+        for ep in entrypoints.get_group_all("databroker.handlers")
         if ep.name == spec
     ]
     assert len(handlers)
