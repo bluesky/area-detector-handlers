@@ -17,7 +17,9 @@
 #
 # Part of the "pyspec" package
 #
-# This is heavily modified from the original
+# This is heavily modified from the original in
+# https://github.com/stuwilkins/pyspec/blob/master/pyspec/ccd/files.py
+# adding py3 support and changing the signatures.
 #
 import numpy
 import time
