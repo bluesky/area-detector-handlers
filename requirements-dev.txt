@@ -2,10 +2,10 @@
 # the documentation) but not necessarily required for _using_ it.
 codecov
 coverage
+entrypoints
 flake8
 pytest
 sphinx
-entrypoints
 # These are dependencies of various sphinx extensions for documentation.
 ipython
 matplotlib
