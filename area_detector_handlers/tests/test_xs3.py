@@ -1,15 +1,5 @@
-import pkg_resources
+from area_detector_handlers.tests.conftest import select_handler
 import pytest
-
-
-def select_handler(spec):
-    handlers = [
-        ep.load()
-        for ep in pkg_resources.iter_entry_points("databroker.handlers")
-        if ep.name == spec
-    ]
-    assert len(handlers)
-    return pytest.mark.parametrize("handler", handlers)
 
 
 @select_handler("XSP3_FLY")

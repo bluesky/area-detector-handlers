@@ -1,8 +1,21 @@
 import numpy as np
 import pytest
 import h5py
+import tifffile
+from itertools import count
 from tempfile import TemporaryDirectory
 from pathlib import Path
+import pkg_resources
+
+
+def select_handler(spec):
+    handlers = [
+        ep.load()
+        for ep in pkg_resources.iter_entry_points("databroker.handlers")
+        if ep.name == spec
+    ]
+    assert len(handlers)
+    return pytest.mark.parametrize("handler", handlers)
 
 
 @pytest.fixture(scope="module")
@@ -38,3 +51,36 @@ def xs3file(request):
 
     request.addfinalizer(finalize)
     return (out_name, {}), (N_points, N_chans, N_bin, N_roi)
+
+
+@pytest.fixture(scope="module", params=[1, 5])
+def tiff_files(request):
+    N_rows = 13
+    N_cols = 27
+    N_points = 7
+    fpp = request.param
+    f_dir = TemporaryDirectory()
+    template = "%s/%s_%05d.tiff"
+    fname = f"adh_{fpp}_test"
+    file_index = count()
+
+    print(f_dir.name)
+    for pt in range(N_points):
+        for _ in range(fpp):
+            write_fname = template % (f_dir.name, fname, next(file_index))
+            tifffile.imwrite(write_fname, np.ones((N_rows, N_cols)) * pt)
+            print(write_fname)
+
+    def finalize():
+        f_dir.cleanup()
+
+    print("*")
+    for f in Path(f_dir.name).rglob("*.tiff"):
+        print(f)
+    print("*")
+    request.addfinalizer(finalize)
+
+    return (
+        (f_dir.name, dict(template=template, frame_per_point=fpp, filename=fname)),
+        (N_rows, N_cols, N_points, fpp),
+    )
