@@ -279,7 +279,7 @@ class PilatusCBFHandler:
             import fabio
         except ImportError as exc:
             raise ImportError(
-                "The AreaDetectorSPEHandler handler requires fabio to be " "installed."
+                "The AreaDetectorSPEHandler handler requires fabio to be installed."
             ) from exc
         start, stop = (
             self._initial_number + point_number * self._fpp,
