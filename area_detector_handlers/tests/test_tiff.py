@@ -1,5 +1,4 @@
 from area_detector_handlers.tests.conftest import select_handler
-import pytest
 import numpy as np
 
 
