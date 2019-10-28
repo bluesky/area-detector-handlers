@@ -1,2 +1,3 @@
+dask[array]
 h5py
 tifffile
