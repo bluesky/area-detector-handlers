@@ -17,18 +17,17 @@
 #
 # Part of the "pyspec" package
 #
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-import six
-
+# This is heavily modified from the original in
+# https://github.com/stuwilkins/pyspec/blob/master/pyspec/ccd/files.py
+# adding py3 support and changing the signatures.
+#
 import numpy
 import time
-from pims.base_frames import FramesSequence
 
 __author__ = "Stuart B. Wilkins <stuwilkins@mac.com>"
 
 
-class PrincetonSPEFile(FramesSequence):
+class PrincetonSPEFile:
     """Class to read SPE files from Princeton CCD cameras"""
 
     TEXTCOMMENTMAX = 80
@@ -101,27 +100,8 @@ class PrincetonSPEFile(FramesSequence):
             s += "\n"
         return s
 
-    def get_frame(self, n):
-        """Return the array with zdimension n
-
-        This method can be used to quickly obtain a 2-D array of the data"""
-        return self._array[n]
-
     def __len__(self):
         return self._shape[0]
-
-    @property
-    def frame_shape(self):
-        return self._shape[1:]
-
-    @property
-    def pixel_type(self):
-        return self._array.dtype
-
-    @classmethod
-    def class_exts(cls):
-        bc = super(PrincetonSPEFile, cls).class_ext()
-        return bc | {'spe'}
 
     def getData(self):
         """Return the array of data"""
