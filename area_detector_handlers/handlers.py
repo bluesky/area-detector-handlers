@@ -112,7 +112,7 @@ class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
 
     def __call__(self, point_number):
         # Don't read out the dataset until it is requested for the first time.
-        if not self._dataset:
+        if self._dataset is None:
             self._dataset = self._file[self._key]
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
@@ -135,11 +135,11 @@ class HDF5DatasetSliceHandler(HDF5DatasetSliceHandlerPureNumpy):
 
     def __call__(self, point_number):
         # Don't read out the dataset until it is requested for the first time.
-        if not self._dataset:
-            self._dataset = self._file[self._key]
+        if self._dataset is None:
+            self._dataset = dask.array.from_array(self._file[self._key])
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
-        return dask.array.from_array(self._dataset)[start:stop]
+        return self._dataset[start:stop]
 
 
 class AreaDetectorHDF5Handler(HDF5DatasetSliceHandler):
