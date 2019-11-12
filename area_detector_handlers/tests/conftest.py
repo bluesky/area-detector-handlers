@@ -54,6 +54,32 @@ def xs3file(request):
 
 
 @pytest.fixture(scope="module", params=[1, 5])
+def hdf5_files(request):
+    N_rows = 13
+    N_cols = 27
+    N_points = 7
+    fpp = request.param
+    f_dir = TemporaryDirectory()
+    fname = f"adh_{fpp}_test.h5"
+    full_path = str(Path(f_dir.name, fname))
+
+    data = np.concatenate([
+        np.ones((fpp, N_rows, N_cols)) * pt for pt in range(N_points)])
+    with h5py.File(full_path) as file:
+        file.create_dataset('entry/data/data', data=data)
+
+    def finalize():
+        f_dir.cleanup()
+
+    request.addfinalizer(finalize)
+
+    return (
+        (full_path, dict(frame_per_point=fpp)),
+        (N_rows, N_cols, N_points, fpp),
+    )
+
+
+@pytest.fixture(scope="module", params=[1, 5])
 def tiff_files(request):
     N_rows = 13
     N_cols = 27

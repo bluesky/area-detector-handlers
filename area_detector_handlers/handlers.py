@@ -1,7 +1,7 @@
 import logging
 import os.path
 
-
+import dask.array
 import h5py
 import numpy as np
 import tifffile
@@ -79,7 +79,7 @@ class AreaDetectorTiffHandler(HandlerBase):
         return ret
 
 
-class HDF5DatasetSliceHandler(HandlerBase):
+class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
     """
     Handler for data stored in one Dataset of an HDF5 file.
 
@@ -95,7 +95,7 @@ class HDF5DatasetSliceHandler(HandlerBase):
         Open the hdf5 file in SWMR read mode. Only used when mode = 'r'.
         Default is False.
     """
-
+    return_type = {'delayed': False}
     specs = set()
 
     def __init__(self, filename, key, frame_per_point=1):
@@ -112,7 +112,7 @@ class HDF5DatasetSliceHandler(HandlerBase):
 
     def __call__(self, point_number):
         # Don't read out the dataset until it is requested for the first time.
-        if not self._dataset:
+        if self._dataset is None:
             self._dataset = self._file[self._key]
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
@@ -128,6 +128,18 @@ class HDF5DatasetSliceHandler(HandlerBase):
         super().close()
         self._file.close()
         self._file = None
+
+
+class HDF5DatasetSliceHandler(HDF5DatasetSliceHandlerPureNumpy):
+    return_type = {'delayed': True}
+
+    def __call__(self, point_number):
+        # Don't read out the dataset until it is requested for the first time.
+        if self._dataset is None:
+            self._dataset = dask.array.from_array(self._file[self._key])
+        start = point_number * self._fpp
+        stop = (point_number + 1) * self._fpp
+        return self._dataset[start:stop]
 
 
 class AreaDetectorHDF5Handler(HDF5DatasetSliceHandler):
