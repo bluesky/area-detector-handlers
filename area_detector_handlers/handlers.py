@@ -126,7 +126,6 @@ class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
 
     def close(self):
         super().close()
-        self._file.close()
         self._file = None
 
 
