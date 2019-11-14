@@ -126,6 +126,14 @@ class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
 
     def close(self):
         super().close()
+        # Intentionally do not close the file. Typically we would have
+        # self._file.close() here to free toe resources associated with the
+        # open file. However, libhdf5 keeps its own account of which files are
+        # open, and if we explicitly close a file like that, *all* handles on
+        # it will become invalid. Thus, any other handler instances using this
+        # file would be broken by us, and indeed we discovered the hard way.
+        # Therefore, we simply drop the reference to the file hanlder here and
+        # let libhdf5 take care of the cleanup.
         self._file = None
 
 
