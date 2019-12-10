@@ -320,7 +320,7 @@ class PilatusCBFHandler:
         return file_list
 
 
-def read_header(fp):
+def read_header(file):
     imm_headformat = "ii32s16si16siiiiiiiiiiiiiddiiIiiI40sf40sf40sf40sf40sf40sf40sf40sf40sf40sfffiiifc295s84s12s"
     imm_fieldnames = [
         'mode',
