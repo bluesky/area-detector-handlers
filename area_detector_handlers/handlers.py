@@ -1,5 +1,6 @@
 import logging
 import os.path
+import struct
 
 import dask.array
 import h5py
@@ -317,3 +318,130 @@ class PilatusCBFHandler:
                 fn = self._template % (self._path, self._filename, j)
                 file_list.append(fn)
         return file_list
+
+
+def read_header(fp):
+    imm_headformat = "ii32s16si16siiiiiiiiiiiiiddiiIiiI40sf40sf40sf40sf40sf40sf40sf40sf40sf40sfffiiifc295s84s12s"
+    imm_fieldnames = [
+        'mode',
+        'compression',
+        'date',
+        'prefix',
+        'number',
+        'suffix',
+        'monitor',
+        'shutter',
+        'row_beg',
+        'row_end',
+        'col_beg',
+        'col_end',
+        'row_bin',
+        'col_bin',
+        'rows',
+        'cols',
+        'bytes',
+        'kinetics',
+        'kinwinsize',
+        'elapsed',
+        'preset',
+        'topup',
+        'inject',
+        'dlen',
+        'roi_number',
+        'buffer_number',
+        'systick',
+        'pv1',
+        'pv1VAL',
+        'pv2',
+        'pv2VAL',
+        'pv3',
+        'pv3VAL',
+        'pv4',
+        'pv4VAL',
+        'pv5',
+        'pv5VAL',
+        'pv6',
+        'pv6VAL',
+        'pv7',
+        'pv7VAL',
+        'pv8',
+        'pv8VAL',
+        'pv9',
+        'pv9VAL',
+        'pv10',
+        'pv10VAL',
+        'imageserver',
+        'CPUspeed',
+        'immversion',
+        'corecotick',
+        'cameratype',
+        'threshhold',
+        'byte632',
+        'empty_space',
+        'ZZZZ',
+        'FFFF'
+    ]
+    bindata = fp.read(1024)
+
+    imm_headerdat = struct.unpack(imm_headformat, bindata)
+    imm_header ={}
+    for k in range(len(imm_headerdat)):
+        imm_header[imm_fieldnames[k]] = imm_headerdat[k]
+
+    return(imm_header)
+
+
+class IMMHandler(HandlerBase):
+    """
+    Handler to retrieve data from the IMM format.
+
+    Based on the following:
+    - https://github.com/AdvancedPhotonSource/xpcs-eigen/blob/master/python/io/imm_file.py
+    - https://pypi.org/project/pyimm
+
+    Parameters
+    ----------
+    filename: string
+        path to .imm file
+    frames_per_point: integer
+        number of frames to return as one datum
+    """
+    specs = {"IMM"} | HandlerBase.specs
+
+    def __init__(self, filename, frames_per_point):
+        self.file = open(filename, "rb")
+        self.frames_per_point = frames_per_point
+        header = read_header(self.file)
+        self.rows, self.cols = header['rows'], header['cols']
+        self.is_compressed = bool(header['compression'] == 6)
+        self.file.seek(0)
+        self.toc = []  # (start byte, element count) pairs
+        while True:
+            try:
+                header = read_header(self.file)
+                cur = self.file.tell()
+                payload_size = header['dlen'] * (6 if self.is_compressed else 2)
+                self.toc.append((cur, header['dlen']))
+                file_pos = payload_size + cur
+                self.file.seek(file_pos)
+                # Check for end of file.
+                if not self.file.read(4):
+                    break
+                self.file.seek(file_pos)
+            except Exception as err:
+                raise IOError("IMM file doesn't seems to be of right type") from err
+
+    def close(self):
+        self.file.close()
+
+    def __call__(self, index):
+        result = np.zeros((self.frames_per_point, self.rows * self.cols),
+                          np.uint32)
+        for i in range(self.frames_per_point):
+            # looping through plane 'i' of chunk 'index'
+            start_byte, num_pixels = self.toc[index * self.frames_per_point + i]
+            self.file.seek(start_byte)
+            indexes = np.fromfile(self.file, dtype=np.uint32, count=num_pixels)
+            values = np.fromfile(self.file, dtype=np.uint16, count=num_pixels)
+            result[i, indexes] = values
+        return result.reshape(self.frames_per_point, self.rows, self.cols)
