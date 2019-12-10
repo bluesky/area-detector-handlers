@@ -381,7 +381,7 @@ def read_header(file):
         'ZZZZ',
         'FFFF'
     ]
-    bindata = fp.read(1024)
+    bindata = file.read(1024)
 
     imm_headerdat = struct.unpack(imm_headformat, bindata)
     imm_header ={}
