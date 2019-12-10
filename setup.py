@@ -55,6 +55,7 @@ setup(
             "XSP3 = area_detector_handlers.handlers:Xspress3HDF5Handler",
             "AD_CBF = area_detector_handlers.handlers:PilatusCBFHandler",
             "XSP3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
+            "IMM = area_detector_handlers.handlers:IMMHandler",
         ]
     },
     include_package_data=True,
@@ -63,6 +64,7 @@ setup(
             # When adding files here, remember to update MANIFEST.in as well,
             # or else they will not be included in the distribution on PyPI!
             # 'path/to/data_file',
+            'area_detector_handlers/tests/data/*',
         ]
     },
     install_requires=requirements,
