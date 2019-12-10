@@ -384,9 +384,7 @@ def read_header(file):
     bindata = file.read(1024)
 
     imm_headerdat = struct.unpack(imm_headformat, bindata)
-    imm_header ={}
-    for k in range(len(imm_headerdat)):
-        imm_header[imm_fieldnames[k]] = imm_headerdat[k]
+    imm_header = dict(zip(imm_fieldnames, imm_headerdat))
 
     return(imm_header)
 
