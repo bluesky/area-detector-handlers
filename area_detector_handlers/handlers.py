@@ -320,7 +320,7 @@ class PilatusCBFHandler:
         return file_list
 
 
-def read_header(file):
+def read_imm_header(file):
     imm_headformat = "ii32s16si16siiiiiiiiiiiiiddiiIiiI40sf40sf40sf40sf40sf40sf40sf40sf40sf40sfffiiifc295s84s12s"
     imm_fieldnames = [
         'mode',
@@ -386,7 +386,7 @@ def read_header(file):
     imm_headerdat = struct.unpack(imm_headformat, bindata)
     imm_header = dict(zip(imm_fieldnames, imm_headerdat))
 
-    return(imm_header)
+    return imm_header
 
 
 class IMMHandler(HandlerBase):
@@ -409,14 +409,14 @@ class IMMHandler(HandlerBase):
     def __init__(self, filename, frames_per_point):
         self.file = open(filename, "rb")
         self.frames_per_point = frames_per_point
-        header = read_header(self.file)
+        header = read_imm_header(self.file)
         self.rows, self.cols = header['rows'], header['cols']
         self.is_compressed = bool(header['compression'] == 6)
         self.file.seek(0)
         self.toc = []  # (start byte, element count) pairs
         while True:
             try:
-                header = read_header(self.file)
+                header = read_imm_header(self.file)
                 cur = self.file.tell()
                 payload_size = header['dlen'] * (6 if self.is_compressed else 2)
                 self.toc.append((cur, header['dlen']))
