@@ -115,7 +115,7 @@ class EigerHandler(HandlerBase):
         num_frames = sum(entry[k].shape[0] for k in valid_keys)
 
         to_concatenate = []
-        for i in range(num_frames):
+        for i in range(num_frames//self._images_per_file):
             dataset = entry[f'data_{1 + (i // self._images_per_file):06d}']
             da = dask.array.from_array(dataset)
             to_concatenate.append(da)
