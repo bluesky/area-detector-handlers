@@ -88,7 +88,7 @@ class EigerHandler(HandlerBase):
         # than set self._md, which has no effect unless the user obtain direct
         # access to the handler instance by reaching into the Filler's cache of
         # them.
-        md = {k: file[v].value for k, v in self.EIGER_MD_LAYOUT.items()}
+        md = {k: file[v][()] for k, v in self.EIGER_MD_LAYOUT.items()}
         # the pixel mask from the eiger contains:
         # 1  -- gap
         # 2  -- dead
