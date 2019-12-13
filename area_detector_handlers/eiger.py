@@ -1,3 +1,8 @@
+"""
+This code was originally developed in https://github.com/NSLS-II/eiger-io
+and copied (the lazy way, without retaining git history) into this repo.
+It has been substantially changed from the original.
+"""
 from glob import glob
 import os
 from pathlib import Path
@@ -64,7 +69,8 @@ class EigerHandler(HandlerBase):
         frame_num: int or None
             If not None, return the frame_num'th image from this
             3D array. Useful for when an event is one image rather
-            than a stack.
+            than a stack. (Editor's note: It's not clear what this original
+            docstring was supposed to mean. Is it *ever* not None?)
 
         Returns
         -------
@@ -78,6 +84,10 @@ class EigerHandler(HandlerBase):
             self._files[master_path] = file
 
         # TODO This should be captured in documents, not extracted here.
+        # This code is retained just in case, but it does not do anything other
+        # than set self._md, which has no effect unless the user obtain direct
+        # access to the handler instance by reaching into the Filler's cache of
+        # them.
         md = {k: file[v].value for k, v in self.EIGER_MD_LAYOUT.items()}
         # the pixel mask from the eiger contains:
         # 1  -- gap
@@ -103,7 +113,6 @@ class EigerHandler(HandlerBase):
         valid_keys = [key for key in entry.keys() if key.startswith("data")]
         valid_keys.sort()
         num_frames = sum(entry[k].shape[0] for k in valid_keys)
-
 
         to_concatenate = []
         for i in range(num_frames):
