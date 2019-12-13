@@ -1,83 +1,11 @@
-import h5py
-import os
-import re
 from glob import glob
+import os
+from pathlib import Path
 
-from pims import FramesSequence, Frame
+import dask.array
+import h5py
 
-try:
-    # databroker v0.9.0
-    from databroker.assets.handlers import HandlerBase
-except ImportError:
-    # databroker < v0.9.0
-    from filestore.retrieve import HandlerBase
-
-
-class EigerImages(FramesSequence):
-    # the regexp patterns for expected files
-    # here it is just file containing "master" but could potentially be
-    # expanded upon
-    pattern = re.compile('(.*)master.*')
-
-    def __init__(self, master_filepath, images_per_file, md=None):
-        # check that 'master' is in file
-        m = self.pattern.match(os.path.basename(master_filepath))
-
-        if m is None:
-            raise ValueError("This reader expects filenames containing "
-                             "the word 'master'. If the file was renamed, "
-                             "revert to the original name given by the "
-                             "detector.")
-        self._md = md
-        self.master_filepath = master_filepath
-        self.images_per_file = images_per_file
-        self._handle = h5py.File(master_filepath, 'r')
-        try:
-            # Eiger firmware v1.3.0 and onwards
-            self._entry = self._handle['entry']['data']
-        except KeyError:
-            # Older firmwares
-            self._entry = self._handle['entry']
-
-    @property
-    def md(self):
-        return self._md
-
-    @property
-    def valid_keys(self):
-        valid_keys = [key for key in self._entry.keys() if
-                      key.startswith("data")]
-        valid_keys.sort()
-        return valid_keys
-
-    def get_frame(self, i):
-        dataset = self._entry['data_{:06d}'
-                              .format(1 + (i // self.images_per_file))]
-        img = dataset[i % self.images_per_file]
-        return Frame(img, frame_no=i)
-
-    # this uses a trick to check for valid keys before counting
-    def __len__(self):
-        return sum(self._entry[k].shape[0] for k in self.valid_keys)
-
-    @property
-    def frame_shape(self):
-        return self[0].shape
-
-    @property
-    def pixel_type(self):
-        return self[0].dtype
-
-    @property
-    def dtype(self):
-        return self.pixel_type
-
-    @property
-    def shape(self):
-        return self.frame_shape
-
-    def close(self):
-        self._handle.close()
+from . import HandlerBase
 
 
 class EigerHandler(HandlerBase):
@@ -112,50 +40,46 @@ class EigerHandler(HandlerBase):
             saved in databroker. Old resources used 'frame_per_point' as a
             kwarg. Newer resources call this 'images_per_file'.
         '''
-        print("filepath : {}".format(fpath))
         # create pims handler
-        self._base_path = fpath
+        self._file_prefix = fpath
         if images_per_file is None and frame_per_point is None:
-            errormsg = "images_per_file and frame_per_point both set"
-            errormsg += "\n This is likely an error."
-            errormsg += " Please check your resource"
-            errormsg += "\n (tip: use a RawHandler to debug resource output)"
-            raise ValueError(errormsg)
+            raise ValueError(
+                "Either images_per_file or frame_per_point must be not None.")
 
         if images_per_file is None:
             # then grab from frame_per_point
-            if frame_per_point is None:
-                # if both are none, then raise an error
-                msg = "Both images_per_file and frame_per_point not set"
-                raise ValueError(msg)
             images_per_file = frame_per_point
-            print("got frame_per_point")
-        else:
-            print("got images_per_file")
 
         self._images_per_file = images_per_file
+        self._files = {}
 
     def __call__(self, seq_id, frame_num=None):
         '''
-            This returns data contained in the file.
+        This returns data contained in the file.
 
-            Parameters
-            ----------
-            seq_id : int
-                The sequence id of the data
+        Parameters
+        ----------
+        seq_id : int
+            The sequence id of the data
 
-            frame_num: int or None
-                If not None, return the frame_num'th image from this
-                3D array. Useful for when an event is one image rather
-                than a stack.
+        frame_num: int or None
+            If not None, return the frame_num'th image from this
+            3D array. Useful for when an event is one image rather
+            than a stack.
 
-            Returns
-            -------
-                A PIMS FramesSequence of data
+        Returns
+        -------
+            A dask array
         '''
-        master_path = '{}_{}_master.h5'.format(self._base_path, seq_id)
-        with h5py.File(master_path, 'r') as f:
-            md = {k: f[v].value for k, v in self.EIGER_MD_LAYOUT.items()}
+        master_path = Path(f'{self._file_prefix}_{seq_id}_master.h5').absolute()
+        try:
+            file = self._files[master_path]
+        except KeyError:
+            file = h5py.File(master_path, 'r')
+            self._files[master_path] = file
+
+        # TODO This should be captured in documents, not extracted here.
+        md = {k: file[v].value for k, v in self.EIGER_MD_LAYOUT.items()}
         # the pixel mask from the eiger contains:
         # 1  -- gap
         # 2  -- dead
@@ -169,11 +93,20 @@ class EigerHandler(HandlerBase):
         # pixel_mask[pixel_mask==2] = 1
         md['binary_mask'] = (pixel_mask == 0)
         md['framerate'] = 1./md['frame_time']
-        # TODO Return a multi-dimensional PIMS seq.
-        ret = EigerImages(master_path, self._images_per_file, md=md)
-        if frame_num is not None:
-            ret = ret[frame_num]
-        return ret
+        self._md = md
+
+        try:
+            # Eiger firmware v1.3.0 and onwards
+            entry = file['entry']['data']
+        except KeyError:
+            # Older firmwares
+            entry = file['entry']
+        dataset = entry[f'data_{1 + (frame_num // self._images_per_file):06d}']
+        da = dask.array.from_array(dataset)
+        if frame_num is None:
+            return da
+        else:
+            return da[frame_num % self.images_per_file]
 
     def get_file_list(self, datum_kwargs_gen):
         ''' get the file list.
@@ -199,3 +132,7 @@ class EigerHandler(HandlerBase):
             sizes.append(os.path.getsize(file))
 
         return sizes
+
+    def close(self):
+        for file in self._files.values():
+            file.close()
