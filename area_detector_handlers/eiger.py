@@ -110,12 +110,15 @@ class EigerHandler(HandlerBase):
         except KeyError:
             # Older firmwares
             entry = file['entry']
-        valid_keys = [key for key in entry.keys() if key.startswith("data")]
-        valid_keys.sort()
-        num_frames = sum(entry[k].shape[0] for k in valid_keys)
+
+        # Each 'master' file references multiple 'data' files.
+        # We just need to know many there are, but here we make
+        # a sorted list of their names because it can be handy
+        # when things break and we need to debug.
+        data_files = sorted([key for key in entry.keys() if key.startswith("data")])
 
         to_concatenate = []
-        for i in range(num_frames//self._images_per_file):
+        for i in range(len(data_files)):
             dataset = entry[f'data_{1 + (i // self._images_per_file):06d}']
             da = dask.array.from_array(dataset)
             to_concatenate.append(da)
