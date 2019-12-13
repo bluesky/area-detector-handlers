@@ -49,7 +49,6 @@ class EigerHandler(HandlerBase):
         if images_per_file is None:
             # then grab from frame_per_point
             images_per_file = frame_per_point
-
         self._images_per_file = images_per_file
         self._files = {}
 
@@ -101,12 +100,21 @@ class EigerHandler(HandlerBase):
         except KeyError:
             # Older firmwares
             entry = file['entry']
-        dataset = entry[f'data_{1 + (frame_num // self._images_per_file):06d}']
-        da = dask.array.from_array(dataset)
+        valid_keys = [key for key in entry.keys() if key.startswith("data")]
+        valid_keys.sort()
+        num_frames = sum(entry[k].shape[0] for k in valid_keys)
+
+
+        to_concatenate = []
+        for i in range(num_frames):
+            dataset = entry[f'data_{1 + (i // self._images_per_file):06d}']
+            da = dask.array.from_array(dataset)
+            to_concatenate.append(da)
+        stack = dask.array.concatenate(to_concatenate)
         if frame_num is None:
-            return da
+            return stack
         else:
-            return da[frame_num % self.images_per_file]
+            return stack[frame_num % self.images_per_file]
 
     def get_file_list(self, datum_kwargs_gen):
         ''' get the file list.

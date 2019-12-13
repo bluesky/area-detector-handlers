@@ -48,6 +48,8 @@ setup(
         "databroker.handlers": [
             "AD_SPE = area_detector_handlers.handlers:AreaDetectorSPEHandler",
             "AD_TIFF = area_detector_handlers.handlers:AreaDetectorTiffHandler",
+            "AD_EIGER = area_detector_handlers.eiger:EigerHandler",
+            "AD_EIGER2 = area_detector_handlers.eiger:EigerHandler",
             "AD_HDF5 = area_detector_handlers.handlers:AreaDetectorHDF5Handler",
             "AD_HDF5_SWMR = area_detector_handlers.handlers:AreaDetectorHDF5SWMRHandler",
             "AD_HDF5_TS = area_detector_handlers.handlers:AreaDetectorHDF5TimestampHandler",
