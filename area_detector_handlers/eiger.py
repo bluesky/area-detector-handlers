@@ -101,7 +101,7 @@ class EigerHandler(HandlerBase):
         # pixel_mask[pixel_mask==1] = 0
         # pixel_mask[pixel_mask==2] = 1
         md['binary_mask'] = (pixel_mask == 0)
-        md['framerate'] = 1./md['frame_time']
+        md['framerate'] = 1. / md['frame_time']
         self._md = md
 
         try:
