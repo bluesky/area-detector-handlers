@@ -142,7 +142,7 @@ class EigerHandler(HandlerBase):
         return filenames
 
     def get_file_sizes(self, datum_kwargs_gen):
-        '''get the file size
+        '''Get the file sizes.
 
            returns size in bytes
         '''
