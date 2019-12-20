@@ -32,13 +32,13 @@ class EigerHandler(HandlerBase):
 
             Parameters
             ----------
-            fpath : str
+            fpath: str
                 the partial file path
 
-            images_per_file : int, optional
+            images_per_file: int, optional
                 images per file. If not set, must set frame_per_point
 
-            frame_per_point : int, optional. If not set, must set
+            frame_per_point: int, optional. If not set, must set
                 images_per_file
 
             This one is backwards compatible for both versions of resources
