@@ -134,7 +134,7 @@ class EigerHandler(HandlerBase):
         filenames = []
         for dm_kw in datum_kwargs_gen:
             seq_id = dm_kw['seq_id']
-            new_filenames = glob(self._base_path + "_" + str(seq_id) + "*")
+            new_filenames = glob(f'{self._file_prefix}_{seq_id}*)
             filenames.extend(new_filenames)
 
         return filenames
