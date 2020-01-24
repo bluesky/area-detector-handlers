@@ -28,24 +28,24 @@ class EigerHandler(HandlerBase):
     specs = {'AD_EIGER2', 'AD_EIGER'}
 
     def __init__(self, fpath, images_per_file=None, frame_per_point=None):
-        ''' Initializer for Eiger handler.
-
-            Parameters
-            ----------
-            fpath : str
-                the partial file path
-
-            images_per_file : int, optional
-                images per file. If not set, must set frame_per_point
-
-            frame_per_point : int, optional. If not set, must set
-                images_per_file
-
-            This one is backwards compatible for both versions of resources
-            saved in databroker. Old resources used 'frame_per_point' as a
-            kwarg. Newer resources call this 'images_per_file'.
         '''
-        # create pims handler
+        Initializer for Eiger handler.
+
+        Parameters
+        ----------
+        fpath : str
+            the partial file path
+
+        images_per_file : int, optional
+            images per file. If not set, must set frame_per_point
+
+        frame_per_point : int, optional. If not set, must set
+            images_per_file
+
+        This one is backwards compatible for both versions of resources
+        saved in databroker. Old resources used 'frame_per_point' as a
+        kwarg. Newer resources call this 'images_per_file'.
+        '''
         self._file_prefix = fpath
         if images_per_file is None and frame_per_point is None:
             raise ValueError(
@@ -63,7 +63,7 @@ class EigerHandler(HandlerBase):
 
         Parameters
         ----------
-        seq_id : int
+        seq_id: int
             The sequence id of the data
 
         frame_num: int or None
@@ -126,9 +126,10 @@ class EigerHandler(HandlerBase):
             return stack[frame_num % self.images_per_file]
 
     def get_file_list(self, datum_kwargs_gen):
-        ''' get the file list.
+        '''
+        Get the file list.
 
-            Receives a list of datum_kwargs for each datum
+        Receives a list of datum_kwargs for each datum
         '''
         filenames = []
         for dm_kw in datum_kwargs_gen:
@@ -139,9 +140,10 @@ class EigerHandler(HandlerBase):
         return filenames
 
     def get_file_sizes(self, datum_kwargs_gen):
-        '''get the file size
+        '''
+        Get the file size
 
-           returns size in bytes
+        returns size in bytes
         '''
         sizes = []
         file_name = self.get_file_list(datum_kwargs_gen)
