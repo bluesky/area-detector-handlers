@@ -436,6 +436,9 @@ class IMMHandler(HandlerBase):
 
     def __call__(self, index):
 
+        shape = (1, self.rows, self.cols)
+
+        @dask.delayed
         def load_plane(j):
             # Load plane 'j' inside the chunk correspond to the Datum
             # identified by 'index'.
@@ -448,18 +451,17 @@ class IMMHandler(HandlerBase):
             # Start with a zeroed array.
             result = np.zeros((self.rows * self.cols), np.uint32)
             # Fill in the sparse data.
-            result[i, indexes] = values
+            result[indexes] = values
             # Fix the shape.
-            result.reshape(self.rows, self.cols)
+            result.reshape(*shape)
             return result
 
         chunks = []
         for j in range(self.frames_per_point):
-            delayed = dask.delayed(load_plane, j)
             delayed_arr = dask.array.from_delayed(
-                delayed, shape=(self.rows, self.cols), dtype=np.uint32)
+                load_plane(j), shape=shape, dtype=np.uint32)
             chunks.append(delayed_arr)
 
-        result = dask.array.stack(chunks)
+        result = dask.array.concatenate(chunks)
         assert result.shape == (self.frames_per_point, self.rows, self.cols)
         return result
