@@ -6,6 +6,7 @@ import dask
 import dask.array
 import h5py
 import numpy as np
+import sparse
 import tifffile
 
 from . import HandlerBase
@@ -449,15 +450,11 @@ class IMMHandler(HandlerBase):
                 file.seek(start_byte)
                 indexes = np.fromfile(file, dtype=np.uint32, count=num_pixels)
                 values = np.fromfile(file, dtype=np.uint16, count=num_pixels)
-            # TODO Here is where we would use pydata sparse instead of literal
-            # numpy.
-            # Start with a zeroed array.
-            result = np.zeros((self.rows * self.cols), np.uint32)
-            # Fill in the sparse data.
-            result[indexes] = values
-            # Fix the shape.
-            result_reshaped = result.reshape(*shape)
-            return result_reshaped
+            result = sparse.COO(
+                data=values, coords=indexes, fill_value=0,
+                shape=self.rows * self.cols)
+            reshaped_result = result.reshape(shape)
+            return reshaped_result
 
         chunks = []
         for j in range(self.frames_per_point):

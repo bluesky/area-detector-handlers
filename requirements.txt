@@ -1,3 +1,4 @@
 dask[array]
 h5py
+sparse
 tifffile
