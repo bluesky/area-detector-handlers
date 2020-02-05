@@ -1,12 +1,16 @@
+import h5py
+import numpy as np
+
 from area_detector_handlers.tests.conftest import select_handler
 
 
 @select_handler("AD_EIGER")
-def test_pre_pixel(eigerfile, handler):
-    (fname, kwargs), (N_points, N_chans, N_bin, N_roi) = eigerfile
+def test_eiger(eigerfile, handler):
+    (out_name, kwargs), (N_points, N_chans, N_bin, N_roi) = eigerfile
+    with h5py.File(out_name, 'r') as file:
+        ndarr = file['entry/data/data_000001'][()]
 
-    with handler(fname, **kwargs) as h:
-        for frame in range(0, N_points):
-            for chan in range(1, N_chans + 1): 
-                assert h(frame=frame, channel=chan).shape == (N_bin,)
-        assert h.get_file_list(()) == (fname,)
+    fpath, seq_id = out_name.split('_')[0:2]
+    with handler(fpath, **kwargs) as h:
+        dask_array = h(seq_id)
+        assert np.array_equal(dask_array.compute(), ndarr)
