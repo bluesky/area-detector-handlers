@@ -2,6 +2,7 @@ import logging
 import os.path
 import struct
 
+import dask
 import dask.array
 import h5py
 import numpy as np
@@ -405,6 +406,7 @@ class IMMHandler(HandlerBase):
         number of frames to return as one datum
     """
     specs = {"IMM"} | HandlerBase.specs
+    return_type = {'delayed': True}
 
     def __init__(self, filename, frames_per_point):
         self.file = open(filename, "rb")
@@ -433,13 +435,31 @@ class IMMHandler(HandlerBase):
         self.file.close()
 
     def __call__(self, index):
-        result = np.zeros((self.frames_per_point, self.rows * self.cols),
-                          np.uint32)
-        for i in range(self.frames_per_point):
-            # looping through plane 'i' of chunk 'index'
-            start_byte, num_pixels = self.toc[index * self.frames_per_point + i]
+
+        def load_plane(j):
+            # Load plane 'j' inside the chunk correspond to the Datum
+            # identified by 'index'.
+            start_byte, num_pixels = self.toc[index * self.frames_per_point + j]
             self.file.seek(start_byte)
             indexes = np.fromfile(self.file, dtype=np.uint32, count=num_pixels)
             values = np.fromfile(self.file, dtype=np.uint16, count=num_pixels)
+            # TODO Here is where we would use pydata sparse instead of literal
+            # numpy.
+            # Start with a zeroed array.
+            result = np.zeros((self.rows * self.cols), np.uint32)
+            # Fill in the sparse data.
             result[i, indexes] = values
-        return result.reshape(self.frames_per_point, self.rows, self.cols)
+            # Fix the shape.
+            result.reshape(self.rows, self.cols)
+            return result
+
+        chunks = []
+        for j in range(self.frames_per_point):
+            delayed = dask.delayed(load_plane, j)
+            delayed_arr = dask.array.from_delayed(
+                delayed, shape=(self.rows, self.cols), dtype=np.uint32)
+            chunks.append(delayed_arr)
+
+        result = dask.array.stack(chunks)
+        assert result.shape == (self.frames_per_point, self.rows, self.cols)
+        return result
