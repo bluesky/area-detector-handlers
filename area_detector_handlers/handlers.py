@@ -456,8 +456,8 @@ class IMMHandler(HandlerBase):
             # Fill in the sparse data.
             result[indexes] = values
             # Fix the shape.
-            result.reshape(*shape)
-            return result
+            result_reshaped = result.reshape(*shape)
+            return result_reshaped
 
         chunks = []
         for j in range(self.frames_per_point):
@@ -465,6 +465,5 @@ class IMMHandler(HandlerBase):
                 load_plane(j), shape=shape, dtype=np.uint32)
             chunks.append(delayed_arr)
 
-        result = dask.array.concatenate(chunks)
-        assert result.shape == (self.frames_per_point, self.rows, self.cols)
+        result = dask.array.concatenate(chunks, axis=0)
         return result
