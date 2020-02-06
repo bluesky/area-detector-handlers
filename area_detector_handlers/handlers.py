@@ -391,6 +391,14 @@ def read_imm_header(file):
     return imm_header
 
 
+class COOSafeToDensify(sparse.COO):
+    def __array__(self, **kwargs):
+        # Ignore sparse's AUTO_DENSIFY setting and just densify.
+        # This allows us to declare that *certain* arrays are safe to
+        # automatically densify without flipping a global setting that might
+        # muck with arrays coming from other code running in the same process.
+        return np.asarray(self.todense(), **kwargs)
+
 class IMMHandler(HandlerBase):
     """
     Handler to retrieve data from the IMM format.
@@ -450,7 +458,7 @@ class IMMHandler(HandlerBase):
                 file.seek(start_byte)
                 indexes = np.fromfile(file, dtype=np.uint32, count=num_pixels)
                 values = np.fromfile(file, dtype=np.uint16, count=num_pixels)
-            result = sparse.COO(
+            result = COOSafeToDensify(
                 data=values, coords=indexes, fill_value=0,
                 shape=self.rows * self.cols)
             reshaped_result = result.reshape(shape)
