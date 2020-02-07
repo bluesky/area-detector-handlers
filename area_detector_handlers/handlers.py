@@ -2,6 +2,7 @@ import logging
 import os.path
 import struct
 
+import dask
 import dask.array
 import h5py
 import numpy as np
@@ -405,41 +406,63 @@ class IMMHandler(HandlerBase):
         number of frames to return as one datum
     """
     specs = {"IMM"} | HandlerBase.specs
+    return_type = {'delayed': True}
 
     def __init__(self, filename, frames_per_point):
-        self.file = open(filename, "rb")
-        self.frames_per_point = frames_per_point
-        header = read_imm_header(self.file)
-        self.rows, self.cols = header['rows'], header['cols']
-        self.is_compressed = bool(header['compression'] == 6)
-        self.file.seek(0)
-        self.toc = []  # (start byte, element count) pairs
-        while True:
-            try:
-                header = read_imm_header(self.file)
-                cur = self.file.tell()
-                payload_size = header['dlen'] * (6 if self.is_compressed else 2)
-                self.toc.append((cur, header['dlen']))
-                file_pos = payload_size + cur
-                self.file.seek(file_pos)
-                # Check for end of file.
-                if not self.file.read(4):
-                    break
-                self.file.seek(file_pos)
-            except Exception as err:
-                raise IOError("IMM file doesn't seems to be of right type") from err
+        self.filename = filename
+        with open(filename, "rb") as file:
+            self.frames_per_point = frames_per_point
+            header = read_imm_header(file)
+            self.rows, self.cols = header['rows'], header['cols']
+            self.is_compressed = bool(header['compression'] == 6)
+            file.seek(0)
+            self.toc = []  # (start byte, element count) pairs
+            while True:
+                try:
+                    header = read_imm_header(file)
+                    cur = file.tell()
+                    payload_size = header['dlen'] * (6 if self.is_compressed else 2)
+                    self.toc.append((cur, header['dlen']))
+                    file_pos = payload_size + cur
+                    file.seek(file_pos)
+                    # Check for end of file.
+                    if not file.peek(4):
+                        break
+                except Exception as err:
+                    raise IOError("IMM file doesn't seems to be of right type") from err
 
     def close(self):
-        self.file.close()
+        # This handler does not cache any file handles.
+        pass
 
     def __call__(self, index):
-        result = np.zeros((self.frames_per_point, self.rows * self.cols),
-                          np.uint32)
-        for i in range(self.frames_per_point):
-            # looping through plane 'i' of chunk 'index'
-            start_byte, num_pixels = self.toc[index * self.frames_per_point + i]
-            self.file.seek(start_byte)
-            indexes = np.fromfile(self.file, dtype=np.uint32, count=num_pixels)
-            values = np.fromfile(self.file, dtype=np.uint16, count=num_pixels)
-            result[i, indexes] = values
-        return result.reshape(self.frames_per_point, self.rows, self.cols)
+
+        shape = (1, self.rows, self.cols)
+
+        @dask.delayed
+        def load_plane(j):
+            # Load plane 'j' inside the chunk correspond to the Datum
+            # identified by 'index'.
+            with open(self.filename, "rb") as file:
+                start_byte, num_pixels = self.toc[index * self.frames_per_point + j]
+                file.seek(start_byte)
+                indexes = np.fromfile(file, dtype=np.uint32, count=num_pixels)
+                values = np.fromfile(file, dtype=np.uint16, count=num_pixels)
+            # TODO Here is where we would use pydata sparse instead of literal
+            # numpy.
+            # Start with a zeroed array.
+            result = np.zeros((self.rows * self.cols), np.uint32)
+            # Fill in the sparse data.
+            result[indexes] = values
+            # Fix the shape.
+            result_reshaped = result.reshape(*shape)
+            return result_reshaped
+
+        chunks = []
+        for j in range(self.frames_per_point):
+            delayed_arr = dask.array.from_delayed(
+                load_plane(j), shape=shape, dtype=np.uint32)
+            chunks.append(delayed_arr)
+
+        result = dask.array.concatenate(chunks, axis=0)
+        return result

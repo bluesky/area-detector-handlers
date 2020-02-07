@@ -1,3 +1,4 @@
+import numpy
 import os
 import pytest
 from area_detector_handlers.tests.conftest import select_handler
@@ -16,3 +17,4 @@ def test_imm(imm_file, frames_per_point, frame_shape, handler):
     with handler(path, **kwargs) as h:
         d = h(index=0)
         assert d.shape == expected_shape
+        numpy.array(d)
