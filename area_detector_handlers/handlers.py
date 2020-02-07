@@ -426,9 +426,8 @@ class IMMHandler(HandlerBase):
                     file_pos = payload_size + cur
                     file.seek(file_pos)
                     # Check for end of file.
-                    if not file.read(4):
+                    if not file.peek(4):
                         break
-                    file.seek(file_pos)
                 except Exception as err:
                     raise IOError("IMM file doesn't seems to be of right type") from err
 
