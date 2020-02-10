@@ -466,3 +466,6 @@ class IMMHandler(HandlerBase):
 
         result = dask.array.concatenate(chunks, axis=0)
         return result
+
+    def get_file_list(self, datum_kwargs_gen):
+        return [self.filename]
