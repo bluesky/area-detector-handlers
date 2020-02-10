@@ -33,13 +33,13 @@ class EigerHandler(HandlerBase):
 
         Parameters
         ----------
-        fpath : str
+        fpath: str
             the partial file path
 
-        images_per_file : int, optional
+        images_per_file: int, optional
             images per file. If not set, must set frame_per_point
 
-        frame_per_point : int, optional. If not set, must set
+        frame_per_point: int, optional. If not set, must set
             images_per_file
 
         This one is backwards compatible for both versions of resources
@@ -101,7 +101,7 @@ class EigerHandler(HandlerBase):
         # pixel_mask[pixel_mask==1] = 0
         # pixel_mask[pixel_mask==2] = 1
         md['binary_mask'] = (pixel_mask == 0)
-        md['framerate'] = 1. / md['frame_time']
+        md['framerate'] = 1. / float(md['frame_time'])
         self._md = md
 
         try:
@@ -132,7 +132,7 @@ class EigerHandler(HandlerBase):
         '''
         Get the file list.
 
-        Receives a list of datum_kwargs for each datum
+        Receives a list of datum_kwargs for each datum.
         '''
         filenames = []
         for dm_kw in datum_kwargs_gen:
@@ -144,9 +144,9 @@ class EigerHandler(HandlerBase):
 
     def get_file_sizes(self, datum_kwargs_gen):
         '''
-        Get the file size
+        Get the file size.
 
-        returns size in bytes
+        Returns size in bytes.
         '''
         sizes = []
         file_name = self.get_file_list(datum_kwargs_gen)
