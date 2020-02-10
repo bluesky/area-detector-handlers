@@ -74,7 +74,7 @@ def eigerfile(request):
 
     with h5py.File(out_name, "w") as fout:
         for e in EigerHandler.EIGER_MD_LAYOUT.values():
-            fout[e] = np.array([np.random.randint(1, 10)])
+            fout[e] = np.random.randint(1, 10)
         fout["entry/data/data_000001"] = h5py.ExternalLink("sample_data_000001.h5", "data_000001")
 
     def finalize():
