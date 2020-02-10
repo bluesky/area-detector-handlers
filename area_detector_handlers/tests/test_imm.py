@@ -18,3 +18,8 @@ def test_imm(imm_file, frames_per_point, frame_shape, handler):
         d = h(index=0)
         assert d.shape == expected_shape
         numpy.array(d)
+
+        def datum_kwargs_gen():
+            yield kwargs
+
+        assert h.get_file_list(datum_kwargs_gen()) == [path]
