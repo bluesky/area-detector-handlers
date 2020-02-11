@@ -21,6 +21,50 @@ class IntegrityError(Exception):
     pass
 
 
+class HDF5VariableFramesHandler(HandlerBase):
+    """
+    Handler for data stored in one Dataset of an HDF5 file.
+
+    Parameters
+    ----------
+    filename : string
+        path to HDF5 file
+    swmr : bool, optional
+        Open the hdf5 file in SWMR read mode. Only used when mode = 'r'.
+        Default is False.
+    """
+
+    specs = {"AD_HDF5_v1"} | HandlerBase.specs
+
+    def __init__(self, filename):
+        self._filename = filename
+        self._key = "/entry/data/data"
+        self._file = None
+        self._dataset = None
+        self.open()
+
+    def get_file_list(self, datum_kwarg_gen):
+        return [self._filename]
+
+    def __call__(self, offset, num_frames):
+        return self._dataset[offset : offset + num_frames]
+
+    def open(self):
+        import h5py
+
+        if self._file:
+            return
+
+        self._file = h5py.File(self._filename, "r")
+        self._dataset = self._file[self._key]
+
+    def close(self):
+        super(HandlerBase, self).close()
+        self._dataset = None
+        self._file.close()
+        self._file = None
+
+
 class AreaDetectorSPEHandler(HandlerBase):
     specs = {"AD_SPE"} | HandlerBase.specs
 
