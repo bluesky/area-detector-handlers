@@ -59,7 +59,7 @@ class HDF5VariableFramesHandler(HandlerBase):
         self._dataset = self._file[self._key]
 
     def close(self):
-        super(HandlerBase, self).close()
+        super().close()
         self._dataset = None
         self._file.close()
         self._file = None
