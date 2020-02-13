@@ -47,7 +47,7 @@ class HDF5VariableFramesHandler(HandlerBase):
         return [self._filename]
 
     def __call__(self, offset, num_frames):
-        return self._dataset[offset : offset + num_frames]
+        return self._dataset[offset: offset + num_frames]
 
     def open(self):
         import h5py
