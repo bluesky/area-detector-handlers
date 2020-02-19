@@ -65,6 +65,26 @@ class HDF5VariableFramesHandler(HandlerBase):
         self._file = None
 
 
+class HDF5VariableFramesHandlerTS(HDF5VariableFramesHandler):
+    def open(self):
+        import h5py
+
+        if self._file:
+            return
+
+        self._file = h5py.File(self._filename, "r")
+        self._dataset1 = self._file["/entry/instrument/NDAttributes/NDArrayEpicsTSSec"]
+        self._dataset2 = self._file["/entry/instrument/NDAttributes/NDArrayEpicsTSnSec"]
+
+ 
+    def __call__(self, offset, num_frames):
+        # Don't read out the dataset until it is requested for the first time.
+        start, stop = offset, offset + num_frames
+        rtn = self._dataset1[start:stop].squeeze()
+        rtn = rtn + (self._dataset2[start:stop].squeeze() * 1e-9)
+        return rtn       
+
+
 class AreaDetectorSPEHandler(HandlerBase):
     specs = {"AD_SPE"} | HandlerBase.specs
 
