@@ -81,6 +81,12 @@ class AreaDetectorTiffHandler(HandlerBase):
         return ret
 
 
+H5PY_KEYERROR_IOERROR_MSG = (
+    "h5py raised a KeyError but this can sometimes actually "
+    "mean an IOError. Raising as an IOError so that Filler will "
+    "retry. (After several retries with backoff Filler gives up.)")
+
+
 class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
     """
     Handler for data stored in one Dataset of an HDF5 file.
@@ -118,11 +124,7 @@ class HDF5DatasetSliceHandlerPureNumpy(HandlerBase):
             try:
                 self._dataset = self._file[self._key]
             except KeyError as error:
-                raise IOError(
-                    "h5py raised a KeyError but this can sometimes actually "
-                    "mean an IOError. Raise as an IOError so that Filler will "
-                    "retry. (After several retries with backoff Filler "
-                    "gives up.)") from error
+                raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
         return self._dataset[start:stop]
@@ -148,11 +150,7 @@ class HDF5DatasetSliceHandler(HDF5DatasetSliceHandlerPureNumpy):
             try:
                 self._dataset = dask.array.from_array(self._file[self._key])
             except KeyError as error:
-                raise IOError(
-                    "h5py raised a KeyError but this can sometimes actually "
-                    "mean an IOError. Raise as an IOError so that Filler will "
-                    "retry. (After several retries with backoff Filler "
-                    "gives up.)") from error
+                raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
         return self._dataset[start:stop]
@@ -246,20 +244,12 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
             try:
                 self._dataset1 = self._file[self._key[0]]
             except KeyError as error:
-                raise IOError(
-                    "h5py raised a KeyError but this can sometimes actually "
-                    "mean an IOError. Raise as an IOError so that Filler will "
-                    "retry. (After several retries with backoff Filler "
-                    "gives up.)") from error
+                raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
         if not self._dataset2:
             try:
                 self._dataset2 = self._file[self._key[1]]
             except KeyError as error:
-                raise IOError(
-                    "h5py raised a KeyError but this can sometimes actually "
-                    "mean an IOError. Raise as an IOError so that Filler will "
-                    "retry. (After several retries with backoff Filler "
-                    "gives up.)") from error
+                raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
         start, stop = point_number * self._fpp, (point_number + 1) * self._fpp
         rtn = self._dataset1[start:stop].squeeze()
         rtn = rtn + (self._dataset2[start:stop].squeeze() * 1e-9)
