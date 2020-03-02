@@ -12,6 +12,8 @@ install:
   - pip install .
   # Install extra requirements for running tests and building docs.
   - pip install -r requirements-dev.txt
+  # Avoid incompatibility issues between third-party dependencies and numpy.
+  - pip install --upgrade numpy
 
 script:
   - coverage run -m pytest  # Run the tests and check for test coverage.

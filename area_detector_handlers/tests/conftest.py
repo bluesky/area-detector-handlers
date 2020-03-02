@@ -98,7 +98,7 @@ def hdf5_files(request):
 
     data = np.concatenate([
         np.ones((fpp, N_rows, N_cols)) * pt for pt in range(N_points)])
-    with h5py.File(full_path) as file:
+    with h5py.File(full_path, "w") as file:
         file.create_dataset('entry/data/data', data=data)
 
     def finalize():
