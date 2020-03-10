@@ -7,8 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class BulkXSPRESS(HandlerBase):
-    specs = {"XSP3_FLY"}
-    HANDLER_NAME = "XSP3_FLY"
+    specs = {'XSP3_FLY', 'XPS3_FLY'} | HandlerBase.specs
     BASE_PATH = "entry/instrument/detector/"
 
     def __init__(self, resource_fn):

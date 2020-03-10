@@ -57,6 +57,7 @@ setup(
             "XSP3 = area_detector_handlers.handlers:Xspress3HDF5Handler",
             "AD_CBF = area_detector_handlers.handlers:PilatusCBFHandler",
             "XSP3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
+            "XPS3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
             "IMM = area_detector_handlers.handlers:IMMHandler",
         ]
     },
