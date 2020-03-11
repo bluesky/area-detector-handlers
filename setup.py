@@ -59,6 +59,8 @@ setup(
             "XSP3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
             "XPS3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
             "DEXELA_FLY_V1 = area_detector_handlers.handlers:BulkXSPRESS",
+            "MERLIN_FLY_STREAM_V1 = area_detector_handlers.handlers:BulkXSPRESS",
+            "MERLIN_FLY = area_detector_handlers.handlers:BulkXSPRESS",
             "IMM = area_detector_handlers.handlers:IMMHandler",
         ]
     },
