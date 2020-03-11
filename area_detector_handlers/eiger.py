@@ -25,7 +25,7 @@ class EigerHandler(HandlerBase):
         'count_time': 'entry/instrument/detector/count_time',
         'pixel_mask': 'entry/instrument/detector/detectorSpecific/pixel_mask',
     }
-    specs = {'AD_EIGER2', 'AD_EIGER'}
+    specs = {'AD_EIGER2', 'AD_EIGER', 'AD_EIGER_SLICE'}
 
     def __init__(self, fpath, images_per_file=None, frame_per_point=None):
         '''
