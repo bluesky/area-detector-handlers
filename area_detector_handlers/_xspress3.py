@@ -7,7 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 class BulkXSPRESS(HandlerBase):
-    specs = {'XSP3_FLY', 'XPS3_FLY', 'DEXELA_FLY_V1', 'MERLIN_FLY_STREAM_V1', 'MERLIN_FLY'} | HandlerBase.specs
+    specs = {
+        'XSP3_FLY',
+        'XPS3_FLY',                 # SRX, TES
+        'DEXELA_FLY_V1',            # SRX
+        'MERLIN_FLY_STREAM_V1',     # SRX
+        'MERLIN_FLY'                # SRX
+    }
+
     BASE_PATH = "entry/instrument/detector/"
 
     def __init__(self, resource_fn):
@@ -31,7 +38,7 @@ XS3_XRF_DATA_KEY = "entry/instrument/detector/data"
 
 
 class Xspress3HDF5Handler(HandlerBase):
-    specs = {"XSP3"} | HandlerBase.specs
+    specs = {"XSP3"}
     HANDLER_NAME = "XSP3"
 
     def __init__(self, filename, key=XS3_XRF_DATA_KEY):
