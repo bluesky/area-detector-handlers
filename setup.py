@@ -55,6 +55,7 @@ setup(
             "AD_HDF5_SWMR = area_detector_handlers.handlers:AreaDetectorHDF5SWMRHandler",
             "AD_HDF5_TS = area_detector_handlers.handlers:AreaDetectorHDF5TimestampHandler",
             "AD_HDF5_SWMR_TS = area_detector_handlers.handlers:AreaDetectorHDF5SWMRTimestampHandler",
+            "AD_HDF5_SINGLE = area_detector_handlers.handlers:AreaDetectorHDF5SingleHandler",
             "XSP3 = area_detector_handlers.handlers:Xspress3HDF5Handler",
             "AD_CBF = area_detector_handlers.handlers:PilatusCBFHandler",
             "XSP3_FLY = area_detector_handlers.handlers:BulkXSPRESS",
