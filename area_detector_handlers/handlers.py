@@ -607,11 +607,11 @@ class SpecsHDF5SingleHandlerDataFrame(HandlerBase):
             with h5py.File(fn, 'r') as f:
                 dataframe = pd.DataFrame(np.array(f[self._key][:]).transpose(),
                                          columns=self._column_names)
-                start_energy=f['/entry/instrument/NDAttributes/StartEnergy'][0]
-                stop_energy=f['/entry/instrument/NDAttributes/StopEnergy'][0]
-                step_energy=f['/entry/instrument/NDAttributes/StepEnergy'][0]
-                kinetic_energy = temp=np.append(
-                    np.arange(start_energy, stop_energy,step_energy), stop_energy)
+                start_energy = f['/entry/instrument/NDAttributes/StartEnergy'][0]
+                stop_energy = f['/entry/instrument/NDAttributes/StopEnergy'][0]
+                step_energy = f['/entry/instrument/NDAttributes/StepEnergy'][0]
+                kinetic_energy = np.append(
+                    np.arange(start_energy, stop_energy, step_energy), stop_energy)
                 dataframe['kinetic_energy'] = kinetic_energy
             ret.append(dataframe)
         return ret
