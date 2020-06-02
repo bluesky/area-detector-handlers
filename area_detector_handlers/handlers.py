@@ -238,6 +238,9 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
         self._dataset2 = None
         self.open()
 
+    def get_file_list(self, datum_kwarg_gen):
+        return [self._filename]
+
     def __call__(self, point_number):
         # Don't read out the dataset until it is requested for the first time.
         if not self._dataset1:
