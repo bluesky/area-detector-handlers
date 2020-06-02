@@ -621,3 +621,32 @@ class SpecsHDF5SingleHandlerDataFrame(HandlerBase):
         for d_kw in datum_kwargs:
             ret.extend(self._fnames_for_point(**d_kw))
         return ret
+
+
+class TimepixHDF5Handler(HDF5DatasetSliceHandler):
+    """
+    Handler for the 'AD_HDF5' spec used by Area Detectors.
+    In this spec, the key (i.e., HDF5 dataset path) is always
+    '/entry/detector/data'.
+    Parameters
+    ----------
+    filename : string
+        path to HDF5 file
+    frame_per_point : integer, optional
+        number of frames to return as one datum, default 1
+    """
+    _handler_name = 'TPX_HDF5'
+    specs = {_handler_name}
+
+    # Ported from
+    #
+    # https://github.com/NSLS-II-HXN/hxntools/blob/16bcf9b16e962e2ba8bda6bc7dc56694482c3af3/
+    # hxntools/handlers/timepix.py#L56-L77
+    #
+    # TODO this is only different due to the hardcoded key being different?
+    hardcoded_key = '/entry/instrument/detector/data'
+
+    def __init__(self, filename, frame_per_point=1):
+        super(TimepixHDF5Handler, self).__init__(
+                filename=filename, key=self.hardcoded_key,
+                frame_per_point=frame_per_point)
