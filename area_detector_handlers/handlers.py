@@ -6,6 +6,7 @@ import dask
 import dask.array
 import h5py
 import numpy as np
+import pandas as pd
 import tifffile
 
 from . import HandlerBase
@@ -490,3 +491,164 @@ class IMMHandler(HandlerBase):
 
     def get_file_list(self, datum_kwargs_gen):
         return [self.filename]
+
+
+class HDF5SingleHandler(HandlerBase):
+    """
+    Handler for hdf5 data stored 1 image per file.
+
+    Parameters
+    ----------
+    fpath : string
+        filepath
+    template : string
+        filename template string.
+    filename : string
+        filename
+    key : string
+        the 'path' inside the file to the data set.
+    frame_per_point : float
+        the number of frames per point.
+    """
+    specs = {'AD_HDF5_SINGLE'}  # Used by SIX
+
+    def __init__(self, fpath, template, filename, key, frame_per_point=1):
+        self._path = os.path.join(fpath, '')
+        self._fpp = frame_per_point
+        self._template = template
+        self._filename = filename
+        self._key = key
+
+    def _fnames_for_point(self, point_number):
+        start = int(point_number * self._fpp)
+        stop = int((point_number + 1) * self._fpp)
+        for j in range(start, stop):
+            yield self._template % (self._path, self._filename, j)
+
+    def __call__(self, point_number):
+        ret = []
+        for fn in self._fnames_for_point(point_number):
+            f = h5py.File(fn, 'r')
+            data = f[self._key]
+            ret.append(data)
+        return ret
+
+    def get_file_list(self, datum_kwargs):
+        ret = []
+        for d_kw in datum_kwargs:
+            ret.extend(self._fnames_for_point(**d_kw))
+        return ret
+
+
+class AreaDetectorHDF5SingleHandler(HDF5SingleHandler):
+    """
+    Handler for hdf5 data stored 1 image per file by areadetector
+
+    Parameters
+    ----------
+    fpath : string
+        filepath
+    template : string
+        filename template string.
+    filename : string
+        filename
+    frame_per_point : float
+        the number of frames per point.
+    """
+    def __init__(self, fpath, template, filename, frame_per_point=1):
+        hardcoded_key = '/entry/data/data'
+        super(AreaDetectorHDF5SingleHandler, self).__init__(
+            fpath=fpath, template=template, filename=filename,
+            key=hardcoded_key, frame_per_point=frame_per_point)
+
+
+class SpecsHDF5SingleHandlerDataFrame(HandlerBase):
+    """Handler for hdf5 data stored 1 image per file and returned as a
+-    Pandas.DataFrame.
+
+    This will work with all hdf5 files that are a mxn arrays and the data is
+    'table like' where m is the number of columns and n is the number of rows.
+
+    Parameters
+    ----------
+    fpath : string
+        filepath
+    template : string
+        filename template string.
+    filename : string
+        filename
+    key : string
+        the 'path' inside the file to the data set.
+    column_names : list[str]
+        The column names of the table
+    frame_per_point : float
+        the number of frames per point.
+    """
+    specs = {'SPECS_HDF5_SINGLE_DATAFRAME'}  # Used by IOS
+
+    def __init__(self, fpath, template, filename, key='/entry/data/data',
+                 column_names=None, frame_per_point=1):
+        # I have included defaults for `key` and 'column_names' for back
+        # compatibility with existing files at SIX.
+        self._path = os.path.join(fpath, '')
+        self._fpp = frame_per_point
+        self._template = template
+        self._filename = filename
+        self._key = key
+        self._column_names = column_names
+
+    def _fnames_for_point(self, point_number):
+        start = int(point_number * self._fpp)
+        stop = int((point_number + 1) * self._fpp)
+        for j in range(start, stop):
+            yield self._template % (self._path, self._filename, j)
+
+    def __call__(self, point_number):
+        ret = []
+        for fn in self._fnames_for_point(point_number):
+            with h5py.File(fn, 'r') as f:
+                dataframe = pd.DataFrame(np.array(f[self._key][:]).transpose(),
+                                         columns=self._column_names)
+                start_energy = f['/entry/instrument/NDAttributes/StartEnergy'][0]
+                stop_energy = f['/entry/instrument/NDAttributes/StopEnergy'][0]
+                step_energy = f['/entry/instrument/NDAttributes/StepEnergy'][0]
+                kinetic_energy = np.append(
+                    np.arange(start_energy, stop_energy, step_energy), stop_energy)
+                dataframe['kinetic_energy'] = kinetic_energy
+            ret.append(dataframe)
+        return ret
+
+    def get_file_list(self, datum_kwargs):
+        ret = []
+        for d_kw in datum_kwargs:
+            ret.extend(self._fnames_for_point(**d_kw))
+        return ret
+
+
+class TimepixHDF5Handler(HDF5DatasetSliceHandler):
+    """
+    Handler for the 'AD_HDF5' spec used by Area Detectors.
+    In this spec, the key (i.e., HDF5 dataset path) is always
+    '/entry/detector/data'.
+    Parameters
+    ----------
+    filename : string
+        path to HDF5 file
+    frame_per_point : integer, optional
+        number of frames to return as one datum, default 1
+    """
+    _handler_name = 'TPX_HDF5'
+    specs = {_handler_name}
+
+    # Ported from
+    #
+    # https://github.com/NSLS-II-HXN/hxntools/blob/16bcf9b16e962e2ba8bda6bc7dc56694482c3af3/
+    # hxntools/handlers/timepix.py#L56-L77
+    #
+    # TODO this is only different due to the hardcoded key being different?
+    hardcoded_key = '/entry/instrument/detector/data'
+
+    def __init__(self, filename, frame_per_point=1):
+        super(TimepixHDF5Handler, self).__init__(
+                filename=filename, key=self.hardcoded_key,
+                frame_per_point=frame_per_point)
