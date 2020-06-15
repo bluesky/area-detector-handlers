@@ -602,7 +602,6 @@ class SpecsHDF5SingleHandlerDataFrame(HandlerBase):
 
     def __call__(self, point_number):
         ret = []
-        import h5py
         for fn in self._fnames_for_point(point_number):
             with h5py.File(fn, 'r') as f:
                 dataframe = pd.DataFrame(np.array(f[self._key][:]).transpose(),
