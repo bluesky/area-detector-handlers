@@ -73,7 +73,7 @@ class AreaDetectorTiffHandler(HandlerBase):
         for fn in self._fnames_for_point(point_number):
             with tifffile.TiffFile(fn) as tif:
                 ret.append(tif.asarray())
-        return np.array(ret).squeeze()
+        return np.array(ret)
 
     def get_file_list(self, datum_kwargs):
         ret = []
