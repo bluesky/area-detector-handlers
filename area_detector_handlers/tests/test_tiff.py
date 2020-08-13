@@ -5,10 +5,7 @@ import numpy as np
 @select_handler("AD_TIFF")
 def test_tiff(tiff_files, handler):
     (rpath, kwargs), (N_rows, N_cols, N_points, fpp) = tiff_files
-    if fpp == 1:
-        expected_shape = (N_rows, N_cols)
-    else:
-        expected_shape = (fpp, N_rows, N_cols)
+    expected_shape = (fpp, N_rows, N_cols)
     with handler(rpath, **kwargs) as h:
         for frame in range(N_points):
             d = h(point_number=frame)
