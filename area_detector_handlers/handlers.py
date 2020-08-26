@@ -66,6 +66,8 @@ class HDF5VariableFramesHandler(HandlerBase):
 
 
 class HDF5VariableFramesHandlerTS(HDF5VariableFramesHandler):
+    specs = {"AD_HDF5_TS_v1"} | HandlerBase.specs
+
     def open(self):
         import h5py
 
