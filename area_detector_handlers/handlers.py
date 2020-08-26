@@ -41,7 +41,7 @@ class HDF5VariableFramesHandler(HandlerBase):
         self._key = "/entry/data/data"
         self._file = None
         self._dataset = None
-        self.open()
+        self._open()
 
     def get_file_list(self, datum_kwarg_gen):
         return [self._filename]
@@ -49,9 +49,7 @@ class HDF5VariableFramesHandler(HandlerBase):
     def __call__(self, offset, num_frames):
         return self._dataset[offset: offset + num_frames]
 
-    def open(self):
-        import h5py
-
+    def _open(self):
         if self._file:
             return
 
@@ -68,9 +66,7 @@ class HDF5VariableFramesHandler(HandlerBase):
 class HDF5VariableFramesHandlerTS(HDF5VariableFramesHandler):
     specs = {"AD_HDF5_TS_v1"} | HandlerBase.specs
 
-    def open(self):
-        import h5py
-
+    def _open(self):
         if self._file:
             return
 
