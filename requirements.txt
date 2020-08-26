@@ -1,4 +1,4 @@
 dask[array]
 h5py
 pandas
-tifffile
+tifffile>=2020.8.25
