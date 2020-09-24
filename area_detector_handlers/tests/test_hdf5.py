@@ -1,6 +1,8 @@
 from area_detector_handlers.tests.conftest import select_handler
 import numpy as np
 
+import pytest
+
 
 @select_handler("AD_HDF5")
 def test_hdf5(hdf5_files, handler):
@@ -11,3 +13,13 @@ def test_hdf5(hdf5_files, handler):
             d = h(point_number=frame)
             assert d.shape == expected_shape
             assert np.all(d == frame)
+
+
+@select_handler("AD_HDF5")
+def test_hdf5_slicing_bound_exception(hdf5_files, handler):
+    (rpath, kwargs), (N_rows, N_cols, N_points, fpp) = hdf5_files
+    N_points = 10
+    with pytest.raises(ValueError):
+        with handler(rpath, **kwargs) as h:
+            for frame in range(N_points):
+                h(point_number=frame)
