@@ -154,6 +154,8 @@ class HDF5DatasetSliceHandler(HDF5DatasetSliceHandlerPureNumpy):
                 raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
         start = point_number * self._fpp
         stop = (point_number + 1) * self._fpp
+        if not len(self._dataset[start:stop]):
+            raise ValueError('Invalid slicing bounds. Handler is slicing beyond size of dataset')
         return self._dataset[start:stop]
 
 
