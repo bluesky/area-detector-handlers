@@ -19,7 +19,7 @@ def test_hdf5(hdf5_files, handler):
 def test_hdf5_slicing_bound_exception(hdf5_files, handler):
     (rpath, kwargs), (N_rows, N_cols, N_points, fpp) = hdf5_files
     bad_num_points = 10
-    assert bad_n_points > N_points
+    assert bad_num_points > N_points
     with pytest.raises(ValueError):
         with handler(rpath, **kwargs) as h:
             for frame in range(bad_num_points):
