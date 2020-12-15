@@ -2,12 +2,11 @@
 Area Detector Handlers
 ======================
 
-.. image:: https://img.shields.io/travis/danielballan/area-detector-handlers.svg
-        :target: https://travis-ci.org/danielballan/area-detector-handlers
+.. image:: https://img.shields.io/github/workflow/status/bluesky/area-detector-handlers/Unit%20Tests
+        :target: https://github.com/bluesky/area-detector-handlers/actions?query=workflow%3A%22Unit+Tests%22+branch%3Amaster
 
 .. image:: https://img.shields.io/pypi/v/area-detector-handlers.svg
         :target: https://pypi.python.org/pypi/area-detector-handlers
-
 
 DataBroker "handlers" for Area Detector
 
