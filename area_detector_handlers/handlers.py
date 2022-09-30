@@ -531,9 +531,9 @@ class HDF5SingleHandler(HandlerBase):
         ret = []
         for fn in self._fnames_for_point(point_number):
             f = h5py.File(fn, 'r')
-            data = f[self._key]
+            data = f[self._key][:]
             ret.append(data)
-        return ret
+        return np.stack(ret)
 
     def get_file_list(self, datum_kwargs):
         ret = []
