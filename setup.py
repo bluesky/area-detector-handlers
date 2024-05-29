@@ -66,6 +66,7 @@ setup(
             "MERLIN_FLY_STREAM_V1 = area_detector_handlers.handlers:BulkXSPRESS",
             "MERLIN_FLY = area_detector_handlers.handlers:BulkXSPRESS",
             "IMM = area_detector_handlers.handlers:IMMHandler",
+            "JPEG = area_detector_handlers.handlers:JPEGHandler",
         ]
     },
     include_package_data=True,
