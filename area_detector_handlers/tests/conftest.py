@@ -100,9 +100,13 @@ def hdf5_files(request):
         np.ones((fpp, N_rows, N_cols)) * pt for pt in range(N_points)])
     timestamps = np.concatenate([
         np.linspace(0, fpp, fpp) for _ in range(N_points)])
+    timestamps_sec = timestamps.astype(np.int64)
+    timestamps_ns = (timestamps - timestamps_sec) * 1e9
     with h5py.File(full_path, "w") as file:
         file.create_dataset('entry/data/data', data=data)
         file.create_dataset('entry/instrument/NDAttributes/NDArrayTimeStamp', data=timestamps)
+        file.create_dataset('entry/instrument/NDAttributes/NDArrayEpicsTSSec', data=timestamps_sec)
+        file.create_dataset('entry/instrument/NDAttributes/NDArrayEpicsTSnSec', data=timestamps_ns)
 
     def finalize():
         f_dir.cleanup()
@@ -134,7 +138,13 @@ def tiff_files(request):
                              # Specifies use of the EPICS metadata
                              software="EPICS areaDetector",
                              # Adds the EPICS timestamp to the TIFF file as a tag
-                             extratags=[(65000, tifffile.DATATYPE.FLOAT, 1, [pt * fpp + i], True)])
+                             extratags=[
+                                 # The detector timestamp
+                                 (65000, tifffile.DATATYPE.FLOAT, 1, [pt * fpp + i], True),
+                                 # The EPICS driver timestamp in seconds
+                                 (65002, tifffile.DATATYPE.LONG, 1, [pt * fpp + i], True),
+                                 # The EPICS driver timestamp in nanoseconds
+                                 (65003, tifffile.DATATYPE.LONG, 1, [pt * fpp + i], True)])
 
     def finalize():
         f_dir.cleanup()

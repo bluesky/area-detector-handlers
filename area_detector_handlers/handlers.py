@@ -83,11 +83,39 @@ class AreaDetectorTiffHandler(HandlerBase):
         return ret
 
 
+class AreaDetectorTiffNDTimestampHandler(AreaDetectorTiffHandler):
+    """
+    Handler to retrieve timestamps from AreaDetector TIFF files.
+
+    The timestamps are read from the TIFF file's EPICS metadata.
+
+    This typically reads the detector timestamps, but falls back
+    on the EPICS driver timestamps if the detector timestamps are not
+    available or configured.
+    """
+
+    specs = {"AD_TIFF_ND_TS"} | AreaDetectorTiffHandler.specs
+
+    def __call__(self, point_number):
+        ret = []
+        for fn in self._fnames_for_point(point_number):
+            with tifffile.TiffFile(fn) as tif:
+                if tif.epics_metadata is None:
+                    raise ValueError("TIFF file has no EPICS metadata, "
+                                     "was this file written by the area "
+                                     "detector plugin?")
+                ret.append(tif.epics_metadata["timeStamp"])
+        return np.array(ret)
+
+
 class AreaDetectorTiffTimestampHandler(AreaDetectorTiffHandler):
     """
     Handler to retrieve timestamps from AreaDetector TIFF files.
 
     The timestamps are read from the TIFF file's EPICS metadata.
+
+    This reads the EPICS driver timestamps, which are in units of seconds
+    since 1990-01-01 00:00:00.
     """
 
     specs = {"AD_TIFF_TS"} | AreaDetectorTiffHandler.specs
@@ -100,7 +128,9 @@ class AreaDetectorTiffTimestampHandler(AreaDetectorTiffHandler):
                     raise ValueError("TIFF file has no EPICS metadata, "
                                      "was this file written by the area "
                                      "detector plugin?")
-                ret.append(tif.epics_metadata["timeStamp"])
+                ts_sec = tif.epics_metadata["epicsTSSec"]
+                ts_ns = tif.epics_metadata["epicsTSNsec"] * 1e-9
+                ret.append(ts_sec + ts_ns)
         return np.array(ret)
 
 
@@ -297,7 +327,7 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
         self._file = None
 
 
-class AreaDetectorHDF5NDArrayTimestampHandler(AreaDetectorHDF5TimestampHandler):
+class AreaDetectorHDF5NDTimestampHandler(AreaDetectorHDF5TimestampHandler):
     """ Handler to retrieve timestamps from Areadetector HDF5 File
 
     In this spec, the timestamps of the images are read.
@@ -311,7 +341,7 @@ class AreaDetectorHDF5NDArrayTimestampHandler(AreaDetectorHDF5TimestampHandler):
         number of frames to return as one datum, default 1
     """
 
-    specs = {"AD_HDF5_NDARRAY_TS"} | AreaDetectorHDF5TimestampHandler.specs
+    specs = {"AD_HDF5_ND_TS"} | AreaDetectorHDF5TimestampHandler.specs
 
     def __init__(self, filename, frame_per_point=1):
         super().__init__(filename, frame_per_point)
