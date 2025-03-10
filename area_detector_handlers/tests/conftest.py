@@ -103,6 +103,7 @@ def hdf5_files(request):
     with h5py.File(full_path, "w") as file:
         file.create_dataset('entry/data/data', data=data)
         file.create_dataset('entry/instrument/NDAttributes/NDArrayTimeStamp', data=timestamps)
+
     def finalize():
         f_dir.cleanup()
 

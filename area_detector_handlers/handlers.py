@@ -92,7 +92,7 @@ class AreaDetectorTiffEpicsTimestampHandler(AreaDetectorTiffHandler):
     EPICS timestamps are read from the TIFF file's timeStamp attribute.
     They are typically in seconds relative to 1990-01-01 00:00:00.
     """
-    
+
     specs = {"AD_TIFF_EPICS_TS"} | AreaDetectorTiffHandler.specs
 
     def __call__(self, point_number):
