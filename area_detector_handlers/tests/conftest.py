@@ -98,8 +98,16 @@ def hdf5_files(request):
 
     data = np.concatenate([
         np.ones((fpp, N_rows, N_cols)) * pt for pt in range(N_points)])
+    timestamps = np.concatenate([
+        np.linspace(n * fpp, (n + 1) * fpp - 1, fpp) for n in range(N_points)])
+    timestamps_sec = timestamps.astype(np.int64)
+    # Add 1e-9 to the timestamps to test nanosecond precision
+    timestamps_ns = ((timestamps - timestamps_sec) * 1e9) + 1
     with h5py.File(full_path, "w") as file:
         file.create_dataset('entry/data/data', data=data)
+        file.create_dataset('entry/instrument/NDAttributes/NDArrayTimeStamp', data=timestamps)
+        file.create_dataset('entry/instrument/NDAttributes/NDArrayEpicsTSSec', data=timestamps_sec)
+        file.create_dataset('entry/instrument/NDAttributes/NDArrayEpicsTSnSec', data=timestamps_ns)
 
     def finalize():
         f_dir.cleanup()
@@ -123,20 +131,25 @@ def tiff_files(request):
     fname = f"adh_{fpp}_test"
     file_index = count()
 
-    print(f_dir.name)
     for pt in range(N_points):
-        for _ in range(fpp):
+        for i in range(fpp):
             write_fname = template % (f_dir.name, fname, next(file_index))
-            tifffile.imwrite(write_fname, np.ones((N_rows, N_cols)) * pt)
-            print(write_fname)
+            tifffile.imwrite(write_fname,
+                             np.ones((N_rows, N_cols)) * pt,
+                             # Specifies use of the EPICS metadata
+                             software="EPICS areaDetector",
+                             # Adds the EPICS timestamp to the TIFF file as a tag
+                             extratags=[
+                                 # The detector timestamp
+                                 (65000, tifffile.DATATYPE.FLOAT, 1, [pt * fpp + i], True),
+                                 # The EPICS driver timestamp in seconds
+                                 (65002, tifffile.DATATYPE.LONG, 1, [pt * fpp + i], True),
+                                 # The EPICS driver timestamp in nanoseconds
+                                 (65003, tifffile.DATATYPE.LONG, 1, [i], True)])
 
     def finalize():
         f_dir.cleanup()
 
-    print("*")
-    for f in Path(f_dir.name).rglob("*.tiff"):
-        print(f)
-    print("*")
     request.addfinalizer(finalize)
 
     return (
