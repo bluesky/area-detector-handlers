@@ -34,8 +34,10 @@ def test_hdf5_nd_ts(hdf5_files, handler):
             d = h(point_number=frame)
             if fpp == 1:
                 assert d.shape == ()
+                assert d == frame
             else:
                 assert d.shape == (fpp,)
+                assert np.all(d == np.linspace(frame * fpp, (frame + 1) * fpp - 1, fpp))
 
 
 @select_handler("AD_HDF5_TS")
@@ -46,5 +48,7 @@ def test_hdf5_ts(hdf5_files, handler):
             d = h(point_number=frame)
             if fpp == 1:
                 assert d.shape == ()
+                assert d == frame + 1e-9
             else:
                 assert d.shape == (fpp,)
+                assert np.all(d == np.linspace(frame * fpp, (frame + 1) * fpp - 1, fpp) + 1e-9)

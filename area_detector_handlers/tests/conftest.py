@@ -99,9 +99,10 @@ def hdf5_files(request):
     data = np.concatenate([
         np.ones((fpp, N_rows, N_cols)) * pt for pt in range(N_points)])
     timestamps = np.concatenate([
-        np.linspace(0, fpp, fpp) for _ in range(N_points)])
+        np.linspace(n * fpp, (n + 1) * fpp - 1, fpp) for n in range(N_points)])
     timestamps_sec = timestamps.astype(np.int64)
-    timestamps_ns = (timestamps - timestamps_sec) * 1e9
+    # Add 1e-9 to the timestamps to test nanosecond precision
+    timestamps_ns = ((timestamps - timestamps_sec) * 1e9) + 1
     with h5py.File(full_path, "w") as file:
         file.create_dataset('entry/data/data', data=data)
         file.create_dataset('entry/instrument/NDAttributes/NDArrayTimeStamp', data=timestamps)
@@ -144,7 +145,7 @@ def tiff_files(request):
                                  # The EPICS driver timestamp in seconds
                                  (65002, tifffile.DATATYPE.LONG, 1, [pt * fpp + i], True),
                                  # The EPICS driver timestamp in nanoseconds
-                                 (65003, tifffile.DATATYPE.LONG, 1, [pt * fpp + i], True)])
+                                 (65003, tifffile.DATATYPE.LONG, 1, [i], True)])
 
     def finalize():
         f_dir.cleanup()

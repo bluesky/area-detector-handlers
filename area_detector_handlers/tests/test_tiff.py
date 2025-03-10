@@ -20,6 +20,7 @@ def test_tiff_nd_ts(tiff_files, handler):
         for frame in range(N_points):
             d = h(point_number=frame)
             assert d.shape == (fpp,)
+            assert np.all(d == np.linspace(frame * fpp, (frame + 1) * fpp - 1, fpp))
 
 
 @select_handler("AD_TIFF_TS")
@@ -29,3 +30,5 @@ def test_tiff_ts(tiff_files, handler):
         for frame in range(N_points):
             d = h(point_number=frame)
             assert d.shape == (fpp,)
+            expected = np.linspace(frame * fpp, (frame + 1) * fpp - 1, fpp) + np.linspace(0, fpp - 1, fpp) * 1e-9
+            assert np.all(d == expected)
