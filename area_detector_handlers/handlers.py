@@ -9,6 +9,7 @@ import h5py
 import numpy as np
 import pandas as pd
 import tifffile
+from PIL import Image
 
 from . import HandlerBase
 from .spe_reader import PrincetonSPEFile
@@ -746,3 +747,14 @@ class TimepixHDF5Handler(HDF5DatasetSliceHandler):
         super(TimepixHDF5Handler, self).__init__(
                 filename=filename, key=self.hardcoded_key,
                 frame_per_point=frame_per_point)
+
+
+class JPEGHandler:
+    specs = {"JPEG"}
+
+    def __init__(self, resource_path):
+        self._resource_path = resource_path
+
+    def __call__(self):
+        filepath = self._resource_path
+        return np.asarray(Image.open(filepath))
