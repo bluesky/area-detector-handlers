@@ -48,7 +48,7 @@ setup(
         "databroker.handlers": [
             "AD_SPE = area_detector_handlers.handlers:AreaDetectorSPEHandler",
             "AD_TIFF = area_detector_handlers.handlers:AreaDetectorTiffHandler",
-            "AD_TIFF_EPICS_TS = area_detector_handlers.handlers:AreaDetectorTiffEpicsTimestampHandler",
+            "AD_TIFF_TS = area_detector_handlers.handlers:AreaDetectorTiffTimestampHandler",
             "AD_EIGER = area_detector_handlers.eiger:EigerHandler",
             "AD_EIGER2 = area_detector_handlers.eiger:EigerHandler",
             "AD_EIGER_SLICE = area_detector_handlers.eiger:EigerHandler",

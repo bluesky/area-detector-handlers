@@ -83,22 +83,23 @@ class AreaDetectorTiffHandler(HandlerBase):
         return ret
 
 
-class AreaDetectorTiffEpicsTimestampHandler(AreaDetectorTiffHandler):
+class AreaDetectorTiffTimestampHandler(AreaDetectorTiffHandler):
     """
     Handler to retrieve timestamps from AreaDetector TIFF files.
 
     The timestamps are read from the TIFF file's EPICS metadata.
-
-    EPICS timestamps are read from the TIFF file's timeStamp attribute.
-    They are typically in seconds relative to 1990-01-01 00:00:00.
     """
 
-    specs = {"AD_TIFF_EPICS_TS"} | AreaDetectorTiffHandler.specs
+    specs = {"AD_TIFF_TS"} | AreaDetectorTiffHandler.specs
 
     def __call__(self, point_number):
         ret = []
         for fn in self._fnames_for_point(point_number):
             with tifffile.TiffFile(fn) as tif:
+                if tif.epics_metadata is None:
+                    raise ValueError("TIFF file has no EPICS metadata, "
+                                     "was this file written by the area "
+                                     "detector plugin?")
                 ret.append(tif.epics_metadata["timeStamp"])
         return np.array(ret)
 
