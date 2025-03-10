@@ -13,8 +13,8 @@ def test_tiff(tiff_files, handler):
             assert np.all(d == frame)
 
 
-@select_handler("AD_TIFF_EPICS_TS")
-def test_tiff_epics_ts(tiff_files, handler):
+@select_handler("AD_TIFF_TS")
+def test_tiff_ts(tiff_files, handler):
     (rpath, kwargs), (_, _, N_points, fpp) = tiff_files
     with handler(rpath, **kwargs) as h:
         for frame in range(N_points):
