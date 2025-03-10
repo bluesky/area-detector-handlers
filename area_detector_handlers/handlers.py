@@ -1,6 +1,7 @@
 import logging
 import os.path
 import struct
+from typing import cast
 
 import dask
 import dask.array
@@ -80,6 +81,26 @@ class AreaDetectorTiffHandler(HandlerBase):
         for d_kw in datum_kwargs:
             ret.extend(self._fnames_for_point(**d_kw))
         return ret
+
+
+class AreaDetectorTiffEpicsTimestampHandler(AreaDetectorTiffHandler):
+    """
+    Handler to retrieve timestamps from AreaDetector TIFF files.
+
+    The timestamps are read from the TIFF file's EPICS metadata.
+
+    EPICS timestamps are read from the TIFF file's timeStamp attribute.
+    They are typically in seconds relative to 1990-01-01 00:00:00.
+    """
+    
+    specs = {"AD_TIFF_EPICS_TS"} | AreaDetectorTiffHandler.specs
+
+    def __call__(self, point_number):
+        ret = []
+        for fn in self._fnames_for_point(point_number):
+            with tifffile.TiffFile(fn) as tif:
+                ret.append(tif.epics_metadata["timeStamp"])
+        return np.array(ret)
 
 
 H5PY_KEYERROR_IOERROR_MSG = (
@@ -219,6 +240,9 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
 
     In this spec, the timestamps of the images are read.
 
+    EPICS timestamps are read from the HDF5 file's NDArrayEpicsTSSec and NDArrayEpicsTSnSec attributes.
+    They are typically in seconds relative to 1990-01-01 00:00:00.
+
     Parameters
     ----------
     filename : string
@@ -270,6 +294,43 @@ class AreaDetectorHDF5TimestampHandler(HandlerBase):
         super().close()
         self._file.close()
         self._file = None
+
+
+class AreaDetectorHDF5NDArrayTimestampHandler(AreaDetectorHDF5TimestampHandler):
+    """ Handler to retrieve timestamps from Areadetector HDF5 File
+
+    In this spec, the timestamps of the images are read.
+    The timestamps are returned as a numpy array.
+
+    Parameters
+    ----------
+    filename : string
+        path to HDF5 file
+    frame_per_point : integer, optional
+        number of frames to return as one datum, default 1
+    """
+
+    specs = {"AD_HDF5_NDARRAY_TS"} | AreaDetectorHDF5TimestampHandler.specs
+
+    def __init__(self, filename, frame_per_point=1):
+        super().__init__(filename, frame_per_point)
+        self._key = [
+            "/entry/instrument/NDAttributes/NDArrayTimeStamp",
+        ]
+        self._timestamps = None
+
+    def __call__(self, point_number):
+        if not self._timestamps:
+            if self._file is None:
+                self.open()
+            file = cast(h5py.File, self._file)
+            try:
+                self._timestamps = file[self._key[0]]
+            except KeyError as error:
+                raise IOError(H5PY_KEYERROR_IOERROR_MSG) from error
+        start, stop = point_number * self._fpp, (point_number + 1) * self._fpp
+        rtn = self._timestamps[start:stop].squeeze()
+        return rtn
 
 
 class AreaDetectorHDF5SWMRTimestampHandler(AreaDetectorHDF5TimestampHandler):
